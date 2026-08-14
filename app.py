@@ -1,29 +1,50 @@
-# IronBody - One-click Flask app with local Ollama AI
+# IronBody - Flask app with Gemini AI for local + cloud deployment
 # Put app.py and index.html in the same folder.
 #
 # First-time setup:
 #   python -m pip install flask flask-cors python-dotenv requests
 #
-# Ollama must be installed and running locally.
-# Default model: gemma3:4b
+# Gemini API key is read from GEMINI_API_KEY.
+# Default model: gemini-2.5-flash
 
 import os
 import time
 import threading
 import webbrowser
 import requests
+from dotenv import load_dotenv
 
 from flask import Flask, request, jsonify, send_from_directory
 from flask_cors import CORS
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
+# Load .env from the same folder as app.py.
+# override=True also fixes cases where Windows has an empty/stale
+# GEMINI_API_KEY environment variable that would otherwise hide .env.
+ENV_FILE = os.path.join(BASE_DIR, ".env")
+load_dotenv(ENV_FILE, override=True)
+
 app = Flask(__name__, static_folder=BASE_DIR, static_url_path="")
 CORS(app)
 
 PORT = int(os.environ.get("PORT", "3001"))
-OLLAMA_URL = "http://127.0.0.1:11434/api/chat"
-MODEL = os.environ.get("OLLAMA_MODEL", "gemma3:4b")
+
+# Accept the project's normal name plus common Gemini/Google aliases.
+# The actual key is never printed or returned to the browser.
+GEMINI_API_KEY = (
+    os.environ.get("GEMINI_API_KEY")
+    or os.environ.get("GOOGLE_API_KEY")
+    or os.environ.get("GOOGLE_GEMINI_API_KEY")
+    or ""
+).strip().strip('"').strip("'")
+
+MODEL = os.environ.get("GEMINI_MODEL", "gemini-2.5-flash").strip()
+GEMINI_URL = f"https://generativelanguage.googleapis.com/v1beta/models/{MODEL}:generateContent"
+
+print(f"[CONFIG] .env found: {os.path.isfile(ENV_FILE)}")
+print(f"[CONFIG] Gemini API key loaded: {bool(GEMINI_API_KEY)}")
+print(f"[CONFIG] Gemini model: {MODEL}")
 
 WINDOW_SECONDS = 60
 MAX_REQUESTS_PER_WINDOW = 30
@@ -44,7 +65,7 @@ def home():
 
 @app.route("/health", methods=["GET"])
 def health():
-    return jsonify({"status": "ok", "ai": "ollama", "model": MODEL})
+    return jsonify({"status": "ok", "ai": "gemini", "model": MODEL, "configured": bool(GEMINI_API_KEY)})
 
 @app.route("/api/analyze-food", methods=["POST"])
 def analyze_food():
@@ -86,33 +107,52 @@ fiber_g: estimated integer grams of fiber for the serving shown
 nutrition_confidence: integer from 0 to 100 for how confident you are in the nutrition estimate specifically (this is usually lower than visual recognition confidence, since portion size is hard to judge from a photo)
 Do not claim that any confidence score is scientific accuracy. If the image is unclear, say so and lower confidence. If is_food is false, still return zeroes for the nutrition fields."""
 
+    if not GEMINI_API_KEY:
+        return jsonify({"error": "Gemini API key is missing. Put GEMINI_API_KEY=YOUR_KEY in the .env file beside app.py, then restart Flask."}), 503
+
     payload = {
-        "model": MODEL,
-        "messages": [{"role": "user", "content": prompt, "images": [image]}],
-        "stream": False,
-        "format": "json",
-        "options": {"temperature": 0.1, "num_predict": 400},
+        "systemInstruction": {
+            "parts": [{"text": "You are IronBody's food-photo recognition model. Return only valid JSON."}]
+        },
+        "contents": [{
+            "role": "user",
+            "parts": [
+                {"text": prompt},
+                {"inline_data": {"mime_type": "image/jpeg", "data": image}}
+            ]
+        }],
+        "generationConfig": {
+            "temperature": 0.1,
+            "maxOutputTokens": 400,
+            "responseMimeType": "application/json"
+        }
     }
 
     try:
-        upstream = requests.post(OLLAMA_URL, json=payload, timeout=180)
-    except requests.exceptions.ConnectionError:
-        return jsonify({"error": "Ollama is not running. Open Ollama and try again."}), 503
+        upstream = requests.post(
+            GEMINI_URL,
+            headers={"x-goog-api-key": GEMINI_API_KEY, "Content-Type": "application/json"},
+            json=payload,
+            timeout=180
+        )
     except requests.exceptions.Timeout:
         return jsonify({"error": "Food analysis took too long to respond."}), 504
     except requests.RequestException as e:
-        return jsonify({"error": f"Ollama connection error: {e}"}), 502
+        return jsonify({"error": f"Gemini connection error: {e}"}), 502
 
     try:
         data = upstream.json()
     except ValueError:
-        return jsonify({"error": "Ollama returned an invalid response."}), 502
+        return jsonify({"error": "Gemini returned an invalid response."}), 502
     if not upstream.ok:
-        return jsonify({"error": data.get("error", "Ollama returned an error.")}), upstream.status_code
+        err = data.get("error", {})
+        message = err.get("message", "Gemini returned an error.") if isinstance(err, dict) else str(err)
+        return jsonify({"error": message}), upstream.status_code
 
-    text = data.get("message", {}).get("content", "")
-    if not text:
-        return jsonify({"error": "Ollama returned an empty food analysis."}), 502
+    try:
+        text = data["candidates"][0]["content"]["parts"][0]["text"]
+    except (KeyError, IndexError, TypeError):
+        return jsonify({"error": "Gemini returned an empty food analysis."}), 502
     try:
         import json
         result = json.loads(text)
@@ -166,55 +206,69 @@ def chat():
     if not isinstance(messages, list) or not messages:
         return jsonify({"error": "messages array is required"}), 400
 
-    ollama_messages = []
-    if system_prompt:
-        ollama_messages.append({"role": "system", "content": str(system_prompt)})
+    if not GEMINI_API_KEY:
+        return jsonify({"error": "Gemini API key is missing. Put GEMINI_API_KEY=YOUR_KEY in the .env file beside app.py, then restart Flask."}), 503
 
+    gemini_contents = []
     for message in messages:
         role = message.get("role", "user")
-        if role not in ["system", "user", "assistant"]:
+        if role == "assistant":
+            role = "model"
+        elif role not in ["user", "model"]:
             role = "user"
+
         content = message.get("content", "")
         if isinstance(content, list):
             parts = []
             for item in content:
                 if isinstance(item, dict) and item.get("type") == "text":
-                    parts.append(item.get("text", ""))
+                    parts.append({"text": str(item.get("text", ""))})
                 else:
-                    parts.append(str(item))
-            content = "\n".join(parts)
-        ollama_messages.append({"role": role, "content": str(content)})
+                    parts.append({"text": str(item)})
+        else:
+            parts = [{"text": str(content)}]
+
+        gemini_contents.append({"role": role, "parts": parts})
 
     payload = {
-        "model": MODEL,
-        "messages": ollama_messages,
-        "stream": False,
-        "options": {
-            "temperature": temperature,
-            "num_predict": max_tokens,
-        },
+        "contents": gemini_contents,
+        "generationConfig": {
+            "temperature": float(temperature),
+            "maxOutputTokens": int(max_tokens)
+        }
     }
 
+    if system_prompt:
+        payload["systemInstruction"] = {
+            "parts": [{"text": str(system_prompt)}]
+        }
+
     try:
-        upstream = requests.post(OLLAMA_URL, json=payload, timeout=180)
-    except requests.exceptions.ConnectionError:
-        return jsonify({"error": "Ollama is not running. Open Ollama and try again."}), 503
+        upstream = requests.post(
+            GEMINI_URL,
+            headers={"x-goog-api-key": GEMINI_API_KEY, "Content-Type": "application/json"},
+            json=payload,
+            timeout=180
+        )
     except requests.exceptions.Timeout:
-        return jsonify({"error": "Ollama took too long to respond."}), 504
+        return jsonify({"error": "Gemini took too long to respond."}), 504
     except requests.RequestException as e:
-        return jsonify({"error": f"Ollama connection error: {e}"}), 502
+        return jsonify({"error": f"Gemini connection error: {e}"}), 502
 
     try:
         data = upstream.json()
     except ValueError:
-        return jsonify({"error": "Ollama returned an invalid response."}), 502
+        return jsonify({"error": "Gemini returned an invalid response."}), 502
 
     if not upstream.ok:
-        return jsonify({"error": data.get("error", "Ollama returned an error.")}), upstream.status_code
+        err = data.get("error", {})
+        message = err.get("message", "Gemini returned an error.") if isinstance(err, dict) else str(err)
+        return jsonify({"error": message}), upstream.status_code
 
-    text = data.get("message", {}).get("content", "")
-    if not text:
-        return jsonify({"error": "Ollama returned an empty response."}), 502
+    try:
+        text = data["candidates"][0]["content"]["parts"][0]["text"]
+    except (KeyError, IndexError, TypeError):
+        return jsonify({"error": "Gemini returned an empty response."}), 502
 
     return jsonify({"content": [{"type": "text", "text": text}]})
 
@@ -229,10 +283,10 @@ if __name__ == "__main__":
     print("==============================================")
     print(f" Website : http://127.0.0.1:{PORT}/")
     print(f" Health  : http://127.0.0.1:{PORT}/health")
-    print(" AI      : Ollama")
+    print(" AI      : Gemini")
     print(f" Model   : {MODEL}")
     print(" Keep this window open while using IronBody.")
     print("==============================================")
     print()
     threading.Thread(target=open_browser, daemon=True).start()
-    app.run(host="127.0.0.1", port=PORT, debug=False, use_reloader=False)
+    app.run(host="0.0.0.0", port=PORT, debug=False, use_reloader=False)
