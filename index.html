@@ -255,40 +255,10 @@
   .goal-protein-box .gp-mult { font-size: 10px; color: var(--ghost); margin-top: 6px; }
   .goal-protein-box .gp-tag { position: absolute; top: -8px; right: 8px; font-size: 9px; background: var(--plasma); color: #fff; padding: 2px 7px; letter-spacing: 1px; }
 
-
-  /* ── PROTEIN COMPLETION COACH ── */
-  .protein-coach-grid {
-    display:grid;
-    grid-template-columns:repeat(auto-fit,minmax(150px,1fr));
-    gap:12px;
-    margin-top:16px;
-  }
-  .protein-coach-box {
-    background:var(--steel);
-    border:1px solid var(--border);
-    border-radius:2px;
-    padding:18px;
-    text-align:center;
-  }
-  .protein-coach-box.highlight { border-color:var(--plasma); background:var(--plasma-dim); }
-  .protein-coach-label {
-    font-size:10px; letter-spacing:1.5px; text-transform:uppercase;
-    color:var(--ghost); margin-bottom:7px;
-  }
-  .protein-coach-value {
-    font-family:'JetBrains Mono',monospace; font-size:24px;
-    font-weight:600; color:var(--white);
-  }
-  .protein-coach-value.orange { color:var(--plasma); }
-  .protein-coach-input {
-    width:100%; background:var(--steel); border:1px solid var(--border);
-    color:var(--white); font-family:'JetBrains Mono',monospace;
-    padding:10px 12px; outline:none;
-  }
-  .protein-coach-input:focus { border-color:var(--plasma); }
-  .protein-coach-note { font-size:11px; color:var(--ghost); margin-top:10px; line-height:1.6; }
-
   /* ── MEAL PHOTO LOG ── */
+  .photo-log-input-row { display: flex; gap: 10px; flex-wrap: wrap; align-items: flex-end; margin-bottom: 16px; }
+  .photo-log-input-row .field { flex: 1; min-width: 160px; margin-bottom: 0; }
+  #meal-photo-file { display: none; }
   .photo-upload-btn {
     background: var(--steel); border: 1px dashed var(--border); color: var(--silver);
     font-size: 12px; padding: 10px 16px; border-radius: 2px; cursor: pointer;
@@ -296,8 +266,20 @@
   }
   .photo-upload-btn:hover { border-color: var(--plasma); color: var(--plasma); }
   .photo-upload-btn.has-file { border-style: solid; border-color: var(--green); color: var(--green); }
+  .meal-log-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 14px; margin-top: 8px; }
+  .meal-log-item { background: var(--steel); border: 1px solid var(--border); border-radius: 2px; overflow: hidden; position: relative; }
   .meal-log-item img { width: 100%; height: 110px; object-fit: cover; display: block; }
+  .meal-log-caption { padding: 8px 10px; }
+  .meal-log-label { font-size: 11px; color: var(--white); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .meal-log-time { font-size: 9px; color: var(--ghost); margin-top: 2px; }
+  .meal-log-del {
+    position: absolute; top: 6px; right: 6px; width: 22px; height: 22px;
+    background: rgba(10,10,10,0.75); border: 1px solid var(--border); color: var(--silver);
+    border-radius: 50%; cursor: pointer; font-size: 12px; display: flex;
+    align-items: center; justify-content: center; line-height: 1;
+  }
   .meal-log-del:hover { color: var(--red); border-color: var(--red); }
+  .meal-log-empty { font-size: 12px; color: var(--ghost); padding: 12px 0; }
 
   /* ── WORKOUT AI CHAT (embedded) ── */
   .wo-goal-badges { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px; }
@@ -538,42 +520,22 @@
     </div>
 
     <div class="card">
-      <div class="card-title">Protein Completion Coach</div>
-      <p style="font-size:12px;color:var(--ghost);margin-bottom:8px;">
-        Tell the coach how much protein you have already eaten today. It will calculate the remaining protein and suggest practical meals to finish today's target.
-      </p>
-
-      <div class="protein-coach-grid">
-        <div class="protein-coach-box">
-          <div class="protein-coach-label">Today's Target</div>
-          <div class="protein-coach-value orange" id="protein-coach-target">—</div>
-        </div>
-
-        <div class="protein-coach-box">
-          <div class="protein-coach-label">Already Eaten</div>
-          <input class="protein-coach-input" id="protein-coach-eaten" type="number"
-                 min="0" step="1" value="0" oninput="updateProteinCompletion()">
-          <div class="protein-coach-note">Enter grams of protein you have eaten today.</div>
-        </div>
-
-        <div class="protein-coach-box highlight">
-          <div class="protein-coach-label">Protein Remaining</div>
-          <div class="protein-coach-value orange" id="protein-coach-remaining">—</div>
-        </div>
-      </div>
-
-      <button class="btn" style="margin-top:16px;" onclick="askProteinCompletionCoach()">
-        🍽️ SUGGEST MEAL TO COMPLETE PROTEIN
-      </button>
-
-      <div id="protein-coach-result" style="display:none;margin-top:16px;"></div>
-    </div>
-
-    <div class="card">
       <div class="card-title">Protein Target By Goal</div>
       <p style="font-size:12px;color:var(--ghost);margin-bottom:4px;">Protein needs change with your goal — higher per kg on a cut to protect lean mass, slightly lower on a bulk since total calories are already abundant.</p>
       <p id="goal-protein-approx-note" style="font-size:11px;color:var(--yellow);margin-bottom:4px;display:none;">Using total body weight as a stand-in for lean mass since body fat % is unknown — calculate full Body Metrics for a precise number.</p>
       <div class="goal-protein-grid" id="goal-protein-grid"></div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Meal Photo Log</div>
+      <p style="font-size:12px;color:var(--ghost);margin-bottom:14px;">Upload a photo of what you ate to keep a visual track record. Stored on this device only.</p>
+      <div class="photo-log-input-row">
+        <label class="photo-upload-btn" id="photo-upload-label" for="meal-photo-file">📷 Choose Photo</label>
+        <input type="file" id="meal-photo-file" accept="image/*" capture="environment" onchange="handlePhotoSelect(event)">
+        <div class="field"><label>Label (optional)</label><input type="text" id="meal-photo-label" placeholder="e.g. Lunch — chicken & rice"></div>
+        <button class="btn" style="margin-top:0;" onclick="addMealPhoto()">Add To Log</button>
+      </div>
+      <div class="meal-log-grid" id="meal-log-grid"></div>
     </div>
 
     <div class="card">
@@ -620,7 +582,7 @@
       <button class="wo-goal-badge" data-goal="cut" onclick="requestWeekWorkout('cut')">🔥 Cut Workout</button>
       <button class="wo-goal-badge" data-goal="maintain" onclick="requestWeekWorkout('maintain')">⚖️ Maintain Workout</button>
       <button class="wo-goal-badge" data-goal="bulk" onclick="requestWeekWorkout('bulk')">💪 Bulk Workout</button>
-      <button class="wo-goal-badge" onclick="requestWeekWorkout(null, true)">🔄 New Workout This Week</button>
+      <button class="wo-goal-badge" onclick="requestWeekWorkout(null, true)">🔄 Regenerate This Week</button>
     </div>
     <div id="wo-chat-messages">
       <div class="wo-msg bot">👋 I'm your AI Workout Coach. Tap a goal above to get this week's training split, or just ask me anything — "give me a 4-day plan", "I have a sore shoulder", "swap leg day", etc. Every week's plan is freshly generated and tailored to Cut / Maintain / Bulk.</div>
@@ -715,7 +677,7 @@
   <div id="chat-header">
     <div>
       <div id="chat-header-title">AI Diet Coach</div>
-      <div id="chat-header-sub">Powered by Local AI · Ask anything</div>
+      <div id="chat-header-sub">Powered by Gemini AI · Ask anything</div>
     </div>
     <button id="chat-close" onclick="toggleChat()">✕</button>
   </div>
@@ -909,7 +871,6 @@ function renderNutrition() {
   document.getElementById('nutrition-approx-note').style.display = approx ? 'block' : 'none';
 
   const protein = approx ? Math.round(w * 1.9) : Math.round(lbm * (goal === 'cut' ? 2.4 : goal === 'bulk' ? 2.0 : 2.2));
-  updateProteinCompletion();
   const fat = Math.round((target * 0.25) / 9);
   const carbs = Math.round((target - protein * 4 - fat * 9) / 4);
   const fiber = Math.round(w * 0.35);
@@ -1024,7 +985,6 @@ function updateBodyWeightTargets() {
   }
 
   quickBW = w;
-  updateProteinCompletion();
 
   const proteinLow = w * 1.6, proteinHigh = w * 2.2;
   const proteinMid = Math.round((proteinLow + proteinHigh) / 2);
@@ -1191,12 +1151,87 @@ function renderProteinByGoal(lbm, goal, approx) {
   }).join('');
 }
 
+// ── MEAL PHOTO LOG (stored locally on this device) ──
+let mealLog = [];
+let pendingPhotoDataUrl = null;
 
-// ── SHARED: CALL LOCAL AI API ──
+function loadMealLog() {
+  try {
+    const raw = localStorage.getItem('ironbody_meal_log');
+    mealLog = raw ? JSON.parse(raw) : [];
+  } catch (e) { mealLog = []; }
+}
+
+function saveMealLog() {
+  try { localStorage.setItem('ironbody_meal_log', JSON.stringify(mealLog)); } catch (e) {}
+}
+
+function handlePhotoSelect(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = () => {
+    pendingPhotoDataUrl = reader.result;
+    const label = document.getElementById('photo-upload-label');
+    label.textContent = '✅ ' + file.name;
+    label.classList.add('has-file');
+  };
+  reader.readAsDataURL(file);
+}
+
+function addMealPhoto() {
+  if (!pendingPhotoDataUrl) {
+    alert('Choose a photo first.');
+    return;
+  }
+  const labelInput = document.getElementById('meal-photo-label');
+  const label = labelInput.value.trim() || 'Meal';
+  mealLog.unshift({
+    id: Date.now(),
+    img: pendingPhotoDataUrl,
+    label,
+    time: new Date().toLocaleString('en-IN', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })
+  });
+  saveMealLog();
+  pendingPhotoDataUrl = null;
+  labelInput.value = '';
+  const uploadLabel = document.getElementById('photo-upload-label');
+  uploadLabel.textContent = '📷 Choose Photo';
+  uploadLabel.classList.remove('has-file');
+  document.getElementById('meal-photo-file').value = '';
+  renderMealLog();
+}
+
+function deleteMealPhoto(id) {
+  mealLog = mealLog.filter(m => m.id !== id);
+  saveMealLog();
+  renderMealLog();
+}
+
+function renderMealLog() {
+  const grid = document.getElementById('meal-log-grid');
+  if (!grid) return;
+  if (!mealLog.length) {
+    grid.innerHTML = '<div class="meal-log-empty">No meals logged yet — add your first photo above.</div>';
+    return;
+  }
+  grid.innerHTML = mealLog.map(m => `
+    <div class="meal-log-item">
+      <div class="meal-log-del" onclick="deleteMealPhoto(${m.id})">✕</div>
+      <img src="${m.img}" alt="${m.label}">
+      <div class="meal-log-caption">
+        <div class="meal-log-label">${m.label}</div>
+        <div class="meal-log-time">${m.time}</div>
+      </div>
+    </div>
+  `).join('');
+}
+
+
+// ── SHARED: CALL DEPLOYED AI API ──
 async function callAIAPI(systemPrompt, messages, maxTokens, temperature) {
-  // Calls your local Flask backend,
-  // so the AI runs through the local backend.
-  const response = await fetch('http://localhost:3001/api/chat', {
+  // Calls the Flask backend on the same deployed site.
+  const response = await fetch('/api/chat', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
@@ -1235,135 +1270,6 @@ function appendNuMessage(role, text, isTyping = false) {
   return el;
 }
 
-
-let proteinEatenToday = 0;
-
-function getProteinTargetForCoach() {
-  if (calculated && userData.w) {
-    const goal = userData.goal;
-    const multiplier = goal === 'cut' ? 2.4 : goal === 'bulk' ? 2.0 : 2.2;
-    return Math.round(userData.lbm * multiplier);
-  }
-  if (Number.isFinite(quickBW) && quickBW > 0) {
-    return Math.round(quickBW * 1.9);
-  }
-  return 0;
-}
-
-function updateProteinCompletion() {
-  const eatenEl = document.getElementById('protein-coach-eaten');
-  const targetEl = document.getElementById('protein-coach-target');
-  const remainingEl = document.getElementById('protein-coach-remaining');
-  if (!eatenEl || !targetEl || !remainingEl) return;
-
-  proteinEatenToday = Math.max(0, parseFloat(eatenEl.value) || 0);
-  const target = getProteinTargetForCoach();
-  const remaining = Math.max(0, target - proteinEatenToday);
-
-  targetEl.textContent = target ? `${target} g` : '—';
-  remainingEl.textContent = target ? `${remaining} g` : '—';
-}
-
-function askProteinCompletionCoach() {
-  const target = getProteinTargetForCoach();
-  const eaten = Math.max(0, parseFloat(document.getElementById('protein-coach-eaten')?.value) || 0);
-
-  if (!target) {
-    alert('Enter your body weight in Weight Nutrition or calculate Body Metrics first.');
-    return;
-  }
-
-  const remaining = Math.max(0, target - eaten);
-  const input = document.getElementById('nu-chat-input');
-  const result = document.getElementById('protein-coach-result');
-
-  if (remaining <= 0) {
-    input.value = `I have already reached my protein target today. Tell me whether I should add any more protein, and if so, suggest a light meal or snack without unnecessarily overshooting my target. My target is ${target}g and I have eaten ${eaten}g.`;
-  } else {
-    input.value =
-      `I need to complete my protein target for TODAY. My protein target is ${target}g. ` +
-      `I have already eaten ${eaten}g, so I have ${remaining}g protein remaining. ` +
-      `Suggest one practical meal or, if needed, two small meals/snacks that together provide about ${remaining}g protein. ` +
-      `Use specific food quantities and estimated protein grams. Prefer Indian foods when practical. ` +
-      `Do not create a weekly plan. Focus only on completing today's remaining protein.`;
-  }
-
-  if (result) {
-    result.style.display = 'block';
-    result.innerHTML = `<div class="advice-box">
-      <div class="advice-title">🎯 Protein Completion Target</div>
-      <p>Target: <strong>${target}g</strong> · Eaten: <strong>${eaten}g</strong> · Remaining: <strong>${remaining}g</strong>. The AI coach will suggest food quantities to close the gap.</p>
-    </div>`;
-  }
-
-  sendNutritionChat();
-}
-
-
-function getDietWeekKey() {
-  const now = new Date();
-  return `ironbody_diet_${now.getFullYear()}_w${getISOWeek(now)}`;
-}
-
-function loadDietWeekHistory() {
-  try {
-    const raw = localStorage.getItem(getDietWeekKey());
-    const data = raw ? JSON.parse(raw) : [];
-    return Array.isArray(data) ? data : [];
-  } catch (e) {
-    return [];
-  }
-}
-
-function saveDietWeekEntry(text) {
-  try {
-    const history = loadDietWeekHistory();
-    const today = new Date().toISOString().slice(0, 10);
-    history.push({
-      date: today,
-      plan: text.slice(0, 5000)
-    });
-    // Keep only the latest 7 diet entries for the current week.
-    localStorage.setItem(getDietWeekKey(), JSON.stringify(history.slice(-7)));
-  } catch (e) {}
-}
-
-function isDietPlanRequest(text) {
-  return /\b(meal plan|diet plan|food plan|today'?s diet|today'?s meal|what should i eat|what can i eat|meals for today|diet for today|meal for today)\b/i.test(text);
-}
-
-function wantsNewMeals(text) {
-  return /\b(new meals?|change (the )?meals?|different meals?|replace (the )?meals?|another meal|regenerate (the )?(diet|meal|meals?)|new diet|change (the )?diet)\b/i.test(text);
-}
-
-function dietVarietyContext(text) {
-  if (!isDietPlanRequest(text)) return "";
-
-  const history = loadDietWeekHistory();
-  if (!history.length) {
-    return "\n\nDIET VARIETY: This is the first stored diet plan for this week. Build today's plan from the user's targets.";
-  }
-
-  const recent = history.slice(-6).map((item, i) =>
-    `Previous diet ${i + 1} (${item.date}): ${item.plan}`
-  ).join("\n");
-
-  const changeRequested = wantsNewMeals(text);
-  return `
-
-DIET VARIETY RULE:
-- Workout plans are locked for the current training week unless the user explicitly asks for a new/regenerated workout.
-- Diet meals are NOT locked. The user may change/regenerate meals whenever they ask.
-- When generating today's diet, do not copy the previous stored diets below. Keep the same nutrition targets but change the main foods/meal combinations.
-- If the user explicitly asks for new/different meals, definitely replace the previous meal choices while keeping the same calorie/protein goals.
-- Never turn this into a weekly schedule unless the user explicitly asks for a weekly plan.
-
-${changeRequested ? "The user explicitly requested different/new meals today, so change the meal choices now." : "Create only today's diet and avoid repeating the previous meal choices."}
-
-PREVIOUS DIETS THIS WEEK:
-${recent}`;
-}
-
 function nuSystemPrompt() {
   let prompt = `You are IronCoach, an elite fitness nutrition coach embedded in the IronBody gym performance app. You specialise in diet plans, macros, meal timing, recipes, and sports nutrition.
 
@@ -1373,32 +1279,14 @@ IMPORTANT PLAN SCOPE: When the user asks for a meal plan, diet plan, food plan, 
 
 Protein targets differ by goal: Cut ≈ 2.4g per kg lean mass (protects muscle in a deficit), Maintain ≈ 2.2g per kg lean mass, Bulk ≈ 2.0g per kg lean mass (already in a surplus, so slightly less per kg is needed). Use these multipliers when asked about protein targets.
 
-CRITICAL DIET VARIETY:
-Generate only TODAY'S diet when the user asks for a diet/meal plan. Do not automatically create a weekly diet.
-Across the same training week, avoid repeating the same meal combinations from previous generated days. Keep the user's calorie and protein targets consistent, but rotate the actual foods and recipes.
-Meals are allowed to change whenever the user asks for new/different meals. If they ask for a new meal, replace the meal choice rather than changing the user's target.
-Never repeat the exact same full-day diet unless the user explicitly asks to repeat it.
+CRITICAL: Every meal plan or recipe you generate must be UNIQUE and DIFFERENT from previous ones. Vary the foods, timing, structure, and approach each time. Never repeat the exact same plan.
 
-Format meal plans clearly with time slots and macro estimates. Keep responses concise but complete — no fluff, no markdown symbols.
-
-PROTEIN COMPLETION RULE:
-If the user provides how much protein they have already eaten today, calculate the remaining protein against their target. When they ask what to eat, recommend food quantities whose estimated protein adds up to approximately the remaining amount. Do not give a generic full-day plan when the request is specifically about completing remaining protein. State the estimated protein contribution of each suggested food and the approximate total.
-`;
+Format meal plans clearly with time slots and macro estimates. Keep responses concise but complete — no fluff, no markdown symbols.`;
   if (calculated && userData.w) {
     prompt += `\n\nUser's current stats: Weight ${userData.w}kg, Height ${userData.hCm}cm, Age ${userData.age}, Gender ${userData.gender}, Body Fat ${userData.bf?.toFixed(1)}%, Lean Mass ${userData.lbm?.toFixed(1)}kg, TDEE ${Math.round(userData.tdee)} kcal, Target ${Math.round(userData.target)} kcal, Goal: ${userData.goal}. Use these numbers to personalise all advice.`;
   } else if (Number.isFinite(quickBW) && quickBW > 0) {
     prompt += quickBWContextLine();
   }
-
-  prompt += dietVarietyContext(window.__currentNutritionRequest || "");
-
-  const proteinTarget = getProteinTargetForCoach();
-  if (proteinTarget > 0) {
-    const proteinEaten = Math.max(0, parseFloat(document.getElementById('protein-coach-eaten')?.value) || 0);
-    const proteinRemaining = Math.max(0, proteinTarget - proteinEaten);
-    prompt += `\n\nTODAY'S PROTEIN TRACKER: target ${proteinTarget}g, already eaten ${proteinEaten}g, remaining ${proteinRemaining}g. If the user asks for food to complete protein, build the suggestion around the remaining ${proteinRemaining}g rather than restarting the whole day's plan.`;
-  }
-
   return prompt;
 }
 
@@ -1414,7 +1302,6 @@ async function sendNutritionChat() {
   if (!text) return;
 
   input.value = '';
-  window.__currentNutritionRequest = text;
   appendNuMessage('user', text);
   nuChatHistory.push({ role: 'user', content: text });
 
@@ -1427,13 +1314,9 @@ async function sendNutritionChat() {
     nuChatHistory.push({ role: 'assistant', content: reply });
     typingEl.remove();
     appendNuMessage('bot', reply);
-
-    if (isDietPlanRequest(text)) {
-      saveDietWeekEntry(reply);
-    }
   } catch (err) {
     typingEl.remove();
-    appendNuMessage('bot', '⚠️ Connection error. Check your internet and try again.');
+    appendNuMessage('bot', '⚠️ ' + (err?.message || 'AI connection failed. Check that the Flask server is running and GEMINI_API_KEY is configured.'));
     nuChatHistory.pop();
   }
 
@@ -1488,12 +1371,7 @@ Tailor training STYLE to the user's goal:
 - BULK (muscle gain): lower-to-moderate rep ranges (4–10), longer rest (2–3 min), heavy compound lift emphasis (squat, bench, deadlift, row, press), minimal cardio, prioritise progressive overload on big lifts.
 - MAINTAIN (medium/recomposition): balanced hybrid, moderate reps (8–12), standard rest (60–120s), mix of strength and hypertrophy work, light conditioning optional.
 
-WORKOUT LOCK RULE:
-Once a workout is generated for the current training week and goal, keep that exact workout for the rest of the week.
-Do NOT generate a different workout automatically on another day of the same week.
-Only generate a different workout when the user explicitly asks for a new workout, regenerate, replacement, or a different routine.
-When a new training week starts, a fresh plan may be generated.
-Across different weeks, vary the split and exercises so plans do not become repetitive.
+CRITICAL: Every week's plan must be DIFFERENT from previous weeks — rotate the split style (e.g. Push/Pull/Legs one week, Upper/Lower the next, Full Body another) and vary specific exercise selection, even for the same goal. Never give the exact same plan twice.
 
 Format: list each training day with a short header (Day 1 — Push, etc.), then exercises as "Exercise — sets×reps — short note", plus a one-line rest day note where applicable. Be specific with sets/reps/rest. No long preamble — get straight into the plan. Keep the response focused and scannable, no markdown symbols.`;
   if (calculated && userData.w) {
@@ -1521,7 +1399,7 @@ async function requestWeekWorkout(goal, forceRegenerate) {
     try {
       const cached = localStorage.getItem(cacheKey);
       if (cached) {
-        appendWoMessage('bot', cached + `\n\n(Locked for Training Week ${week}. It will stay the same this week unless you explicitly ask for a new workout.)`);
+        appendWoMessage('bot', cached + `\n\n(Already generated for Training Week ${week} — tap "Regenerate This Week" for a fresh variation.)`);
         woChatHistory.push({ role: 'user', content: `Give me this week's ${goalLabel} workout plan.` });
         woChatHistory.push({ role: 'assistant', content: cached });
         return;
@@ -1572,7 +1450,7 @@ async function sendWorkoutChat() {
     appendWoMessage('bot', reply);
   } catch (err) {
     typingEl.remove();
-    appendWoMessage('bot', '⚠️ Connection error. Check your internet and try again.');
+    appendWoMessage('bot', '⚠️ ' + (err?.message || 'AI connection failed. Check that the Flask server is running and GEMINI_API_KEY is configured.'));
   }
 
   woChatLoading = false;
@@ -1704,7 +1582,7 @@ Format meal plans clearly with time slots and macro estimates. Keep responses co
     appendMessage('bot', reply);
   } catch (err) {
     typingEl.remove();
-    appendMessage('bot', '⚠️ Connection error. Check your internet and try again.');
+    appendMessage('bot', '⚠️ ' + (err?.message || 'AI connection failed. Check that the Flask server is running and GEMINI_API_KEY is configured.'));
   }
 
   chatLoading = false;
@@ -1722,7 +1600,20 @@ function appendMessage(role, text, isTyping = false) {
   return el;
 }
 
+async function checkAIBackend() {
+  try {
+    const r = await fetch('/health', { cache: 'no-store' });
+    const d = await r.json();
+    console.log('IronBody AI health:', d);
+    return d;
+  } catch (e) {
+    console.warn('IronBody backend unavailable:', e);
+    return null;
+  }
+}
+
 // ── INIT ──
+loadMealLog();
 renderHydration();
 </script>
 </body>
