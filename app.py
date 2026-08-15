@@ -5,7 +5,7 @@
 #   python -m pip install flask flask-cors python-dotenv requests
 #
 # Gemini API key is read from GEMINI_API_KEY.
-# Default model: gemini-2.5-flash
+# Default model: gemini-3.6-flash
 
 import os
 import time
@@ -39,7 +39,13 @@ GEMINI_API_KEY = (
     or ""
 ).strip().strip('"').strip("'")
 
-MODEL = os.environ.get("GEMINI_MODEL", "gemini-2.5-flash").strip()
+MODEL = os.environ.get("GEMINI_MODEL", "").strip() or "gemini-3.6-flash"
+
+# Automatically migrate the old model name if it is still present in
+# Render/environment variables.
+if MODEL in {"gemini-2.5-flash", "gemini-2.5-flash-001"}:
+    MODEL = "gemini-3.6-flash"
+
 GEMINI_URL = f"https://generativelanguage.googleapis.com/v1beta/models/{MODEL}:generateContent"
 
 print(f"[CONFIG] .env found: {os.path.isfile(ENV_FILE)}")
@@ -122,7 +128,6 @@ Do not claim that any confidence score is scientific accuracy. If the image is u
             ]
         }],
         "generationConfig": {
-            "temperature": 0.1,
             "maxOutputTokens": 400,
             "responseMimeType": "application/json"
         }
@@ -233,7 +238,6 @@ def chat():
     payload = {
         "contents": gemini_contents,
         "generationConfig": {
-            "temperature": float(temperature),
             "maxOutputTokens": int(max_tokens)
         }
     }
