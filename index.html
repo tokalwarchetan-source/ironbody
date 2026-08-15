@@ -255,31 +255,111 @@
   .goal-protein-box .gp-mult { font-size: 10px; color: var(--ghost); margin-top: 6px; }
   .goal-protein-box .gp-tag { position: absolute; top: -8px; right: 8px; font-size: 9px; background: var(--plasma); color: #fff; padding: 2px 7px; letter-spacing: 1px; }
 
-  /* ── MEAL PHOTO LOG ── */
-  .photo-log-input-row { display: flex; gap: 10px; flex-wrap: wrap; align-items: flex-end; margin-bottom: 16px; }
-  .photo-log-input-row .field { flex: 1; min-width: 160px; margin-bottom: 0; }
-  #meal-photo-file { display: none; }
-  .photo-upload-btn {
-    background: var(--steel); border: 1px dashed var(--border); color: var(--silver);
-    font-size: 12px; padding: 10px 16px; border-radius: 2px; cursor: pointer;
-    text-align: center; transition: all 0.2s; white-space: nowrap;
+
+
+  /* ── PROTEIN COMPLETION COACH ── */
+  .protein-completion-grid {
+    display:grid;
+    grid-template-columns:repeat(3,minmax(0,1fr));
+    gap:12px;
+    margin-top:16px;
   }
-  .photo-upload-btn:hover { border-color: var(--plasma); color: var(--plasma); }
-  .photo-upload-btn.has-file { border-style: solid; border-color: var(--green); color: var(--green); }
-  .meal-log-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 14px; margin-top: 8px; }
-  .meal-log-item { background: var(--steel); border: 1px solid var(--border); border-radius: 2px; overflow: hidden; position: relative; }
-  .meal-log-item img { width: 100%; height: 110px; object-fit: cover; display: block; }
-  .meal-log-caption { padding: 8px 10px; }
-  .meal-log-label { font-size: 11px; color: var(--white); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .meal-log-time { font-size: 9px; color: var(--ghost); margin-top: 2px; }
-  .meal-log-del {
-    position: absolute; top: 6px; right: 6px; width: 22px; height: 22px;
-    background: rgba(10,10,10,0.75); border: 1px solid var(--border); color: var(--silver);
-    border-radius: 50%; cursor: pointer; font-size: 12px; display: flex;
-    align-items: center; justify-content: center; line-height: 1;
+  .protein-completion-box {
+    background:var(--steel);
+    border:1px solid var(--border);
+    border-radius:2px;
+    padding:18px;
+    text-align:center;
   }
-  .meal-log-del:hover { color: var(--red); border-color: var(--red); }
-  .meal-log-empty { font-size: 12px; color: var(--ghost); padding: 12px 0; }
+  .protein-completion-box.highlight {
+    border-color:var(--plasma);
+    background:var(--plasma-dim);
+  }
+  .pc-label {
+    font-size:10px;
+    letter-spacing:1.5px;
+    text-transform:uppercase;
+    color:var(--ghost);
+    margin-bottom:9px;
+  }
+  .pc-value {
+    font-family:'JetBrains Mono',monospace;
+    font-size:28px;
+    font-weight:600;
+    color:var(--white);
+  }
+  .pc-value.plasma { color:var(--plasma); }
+  .pc-unit {
+    font-size:10px;
+    color:var(--ghost);
+    margin-top:5px;
+  }
+  .pc-input {
+    width:100%;
+    max-width:150px;
+    background:var(--iron);
+    border:1px solid var(--border);
+    color:var(--white);
+    font-family:'JetBrains Mono',monospace;
+    font-size:24px;
+    text-align:center;
+    padding:8px;
+    outline:none;
+    border-radius:2px;
+  }
+  .pc-input:focus { border-color:var(--plasma); }
+  .pc-progress-wrap { margin-top:18px; }
+  .pc-progress {
+    width:100%;
+    height:9px;
+    background:var(--iron);
+    border-radius:5px;
+    overflow:hidden;
+  }
+  .pc-progress-fill {
+    height:100%;
+    width:0%;
+    background:linear-gradient(90deg,var(--plasma),var(--green));
+    transition:width .3s ease;
+  }
+  .pc-progress-labels {
+    display:flex;
+    justify-content:space-between;
+    margin-top:7px;
+    font-size:10px;
+    color:var(--ghost);
+    font-family:'JetBrains Mono',monospace;
+  }
+  .pc-action-row {
+    display:flex;
+    gap:10px;
+    align-items:center;
+    flex-wrap:wrap;
+    margin-top:18px;
+  }
+  .pc-suggest-btn { margin-top:0; }
+  .pc-reset-btn {
+    background:var(--iron);
+    border:1px solid var(--border);
+    color:var(--silver);
+    padding:12px 18px;
+    cursor:pointer;
+    font-family:'Bebas Neue',sans-serif;
+    letter-spacing:1px;
+  }
+  .pc-reset-btn:hover { border-color:var(--plasma); color:var(--plasma); }
+  .pc-suggestion {
+    margin-top:16px;
+    padding:16px;
+    background:var(--steel);
+    border:1px solid var(--border);
+    border-left:3px solid var(--plasma);
+    color:var(--silver);
+    font-size:13px;
+    line-height:1.75;
+    white-space:pre-wrap;
+    overflow-wrap:anywhere;
+  }
 
   /* ── WORKOUT AI CHAT (embedded) ── */
   .wo-goal-badges { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px; }
@@ -376,6 +456,7 @@
     .nav-btn { padding: 8px 12px; font-size: 11px; }
     #chat-window { width: calc(100vw - 32px); right: 16px; bottom: 90px; }
     #chat-fab { bottom: 20px; right: 20px; }
+    .protein-completion-grid { grid-template-columns:1fr; }
   }
 </style>
 </head>
@@ -541,26 +622,62 @@
       <div id="protein-distribution"></div>
     </div>
 
+
+    <div class="card">
+      <div class="card-title">Protein Completion Coach</div>
+      <p style="font-size:12px;color:var(--ghost);margin-bottom:14px;">
+        Enter how much protein you have already eaten today. IronBody will calculate the remaining protein and suggest a practical meal to finish today's target.
+      </p>
+
+      <div class="protein-completion-grid">
+        <div class="protein-completion-box">
+          <div class="pc-label">TODAY'S TARGET</div>
+          <div class="pc-value plasma" id="pc-target">—</div>
+          <div class="pc-unit">grams protein</div>
+        </div>
+
+        <div class="protein-completion-box">
+          <div class="pc-label">ALREADY EATEN</div>
+          <input id="pc-eaten" class="pc-input" type="number" min="0" step="1"
+                 placeholder="0" oninput="updateProteinCompletion()">
+          <div class="pc-unit">grams protein</div>
+        </div>
+
+        <div class="protein-completion-box highlight">
+          <div class="pc-label">PROTEIN REMAINING</div>
+          <div class="pc-value" id="pc-remaining">—</div>
+          <div class="pc-unit">grams to complete</div>
+        </div>
+      </div>
+
+      <div class="pc-progress-wrap">
+        <div class="pc-progress">
+          <div class="pc-progress-fill" id="pc-progress-fill"></div>
+        </div>
+        <div class="pc-progress-labels">
+          <span>0g</span>
+          <span id="pc-progress-text">0% complete</span>
+          <span id="pc-progress-target">—</span>
+        </div>
+      </div>
+
+      <div class="pc-action-row">
+        <button class="btn pc-suggest-btn" id="pc-suggest-btn" onclick="suggestProteinCompletion()">
+          🍽 SUGGEST MEAL TO COMPLETE PROTEIN
+        </button>
+        <button class="pc-reset-btn" onclick="resetProteinCompletion()">RESET</button>
+      </div>
+
+      <div id="pc-suggestion" class="pc-suggestion" style="display:none;"></div>
+    </div>
+
     <div class="card">
       <div class="card-title">Protein Target By Goal</div>
       <p style="font-size:12px;color:var(--ghost);margin-bottom:4px;">Protein needs change with your goal — higher per kg on a cut to protect lean mass, slightly lower on a bulk since total calories are already abundant.</p>
       <p id="goal-protein-approx-note" style="font-size:11px;color:var(--yellow);margin-bottom:4px;display:none;">Using total body weight as a stand-in for lean mass since body fat % is unknown — calculate full Body Metrics for a precise number.</p>
       <div class="goal-protein-grid" id="goal-protein-grid"></div>
     </div>
-
-    <div class="card">
-      <div class="card-title">Meal Photo Log</div>
-      <p style="font-size:12px;color:var(--ghost);margin-bottom:14px;">Upload a photo of what you ate to keep a visual track record. Stored on this device only.</p>
-      <div class="photo-log-input-row">
-        <label class="photo-upload-btn" id="photo-upload-label" for="meal-photo-file">📷 Choose Photo</label>
-        <input type="file" id="meal-photo-file" accept="image/*" capture="environment" onchange="handlePhotoSelect(event)">
-        <div class="field"><label>Label (optional)</label><input type="text" id="meal-photo-label" placeholder="e.g. Lunch — chicken & rice"></div>
-        <button class="btn" style="margin-top:0;" onclick="addMealPhoto()">Add To Log</button>
-      </div>
-      <div class="meal-log-grid" id="meal-log-grid"></div>
-    </div>
-
-    <div class="card">
+<div class="card">
       <div class="card-title">AI Food Photo Analyzer</div>
       <p style="font-size:12px;color:var(--ghost);margin-bottom:14px;">Upload a food photo and the ML vision model will identify the dish, give a recognition-confidence score, and estimate calories, protein, carbs, fat and fiber for the serving shown. If you enter what you think the food is, it will also check the visual match.</p>
       <div class="photo-log-input-row">
@@ -938,7 +1055,7 @@ function renderNutrition() {
   `).join('');
 
   renderProteinByGoal(lbm, goal, approx);
-  renderMealLog();
+  updateProteinCompletion();
 
   // Meal timing
   document.getElementById('meal-timing').innerHTML = [
@@ -1040,6 +1157,7 @@ function updateBodyWeightTargets() {
 
 // ── AI FOOD PHOTO ANALYZER ──
 let foodAnalysisDataUrl = '';
+let foodAnalysisMimeType = 'image/jpeg';
 
 function previewFoodAnalysis(event) {
   const file = event.target.files && event.target.files[0];
@@ -1062,6 +1180,7 @@ function previewFoodAnalysis(event) {
   const reader = new FileReader();
   reader.onload = () => {
     foodAnalysisDataUrl = reader.result;
+    foodAnalysisMimeType = file.type || 'image/jpeg';
     preview.style.display = 'block';
     preview.innerHTML = `<img src="${foodAnalysisDataUrl}" alt="Food preview" style="max-width:280px;max-height:220px;border-radius:8px;border:1px solid var(--iron);display:block;">`;
   };
@@ -1080,13 +1199,13 @@ async function analyzeFoodPhoto() {
   btn.disabled = true;
   btn.textContent = 'ANALYZING…';
   result.style.display = 'block';
-  result.innerHTML = '<div style="color:var(--ghost);font-size:12px;">🤖 Analyzing the food photo locally with Gemma 3 Vision…</div>';
+  result.innerHTML = '<div style="color:var(--ghost);font-size:12px;">🤖 Analyzing your food photo with Gemini Vision…</div>';
 
   try {
     const response = await fetch('/api/analyze-food', {
       method: 'POST',
       headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify({image: foodAnalysisDataUrl, expectedFood})
+      body: JSON.stringify({image: foodAnalysisDataUrl, mimeType: foodAnalysisMimeType, expectedFood})
     });
     const data = await response.json();
     if (!response.ok) throw new Error(data.error || 'Food analysis failed.');
@@ -1150,6 +1269,124 @@ function escapeHtml(value) {
   return String(value ?? '').replace(/[&<>'"]/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[ch]));
 }
 
+
+// ── PROTEIN COMPLETION COACH ──
+function getProteinTarget() {
+  if (calculated && Number.isFinite(userData.lbm)) {
+    const multiplier = userData.goal === 'cut' ? 2.4 :
+                       userData.goal === 'bulk' ? 2.0 : 2.2;
+    return Math.round(userData.lbm * multiplier);
+  }
+  if (Number.isFinite(quickBW) && quickBW > 0) return Math.round(quickBW * 1.9);
+  return null;
+}
+
+function proteinStorageKey() {
+  return 'ironbody_protein_' + new Date().toISOString().slice(0,10);
+}
+
+function loadProteinCompletion() {
+  const input = document.getElementById('pc-eaten');
+  if (!input) return;
+  try {
+    const saved = localStorage.getItem(proteinStorageKey());
+    if (saved !== null) input.value = saved;
+  } catch (e) {}
+  updateProteinCompletion();
+}
+
+function updateProteinCompletion() {
+  const target = getProteinTarget();
+  const input = document.getElementById('pc-eaten');
+  const targetEl = document.getElementById('pc-target');
+  const remainingEl = document.getElementById('pc-remaining');
+  const fill = document.getElementById('pc-progress-fill');
+  const progressText = document.getElementById('pc-progress-text');
+  const progressTarget = document.getElementById('pc-progress-target');
+
+  if (!target) {
+    targetEl.textContent = '—';
+    remainingEl.textContent = '—';
+    fill.style.width = '0%';
+    progressText.textContent = 'Calculate metrics or enter body weight first';
+    progressTarget.textContent = '—';
+    return;
+  }
+
+  const eaten = Math.max(0, Number(input.value) || 0);
+  const remaining = Math.max(0, target - eaten);
+  const pct = Math.min(100, Math.round((eaten / target) * 100));
+
+  targetEl.textContent = target + ' g';
+  remainingEl.textContent = remaining + ' g';
+  fill.style.width = pct + '%';
+  progressText.textContent = pct + '% complete';
+  progressTarget.textContent = target + 'g target';
+
+  try { localStorage.setItem(proteinStorageKey(), String(eaten)); } catch (e) {}
+}
+
+function resetProteinCompletion() {
+  const input = document.getElementById('pc-eaten');
+  if (input) input.value = '';
+  try { localStorage.removeItem(proteinStorageKey()); } catch (e) {}
+  updateProteinCompletion();
+  const box = document.getElementById('pc-suggestion');
+  if (box) {
+    box.style.display = 'none';
+    box.textContent = '';
+  }
+}
+
+async function suggestProteinCompletion() {
+  const target = getProteinTarget();
+  if (!target) {
+    alert('First calculate Body Metrics or enter your body weight in Weight Nutrition.');
+    return;
+  }
+
+  const eaten = Math.max(0, Number(document.getElementById('pc-eaten').value) || 0);
+  const remaining = Math.max(0, target - eaten);
+  const box = document.getElementById('pc-suggestion');
+  const btn = document.getElementById('pc-suggest-btn');
+
+  if (remaining <= 0) {
+    box.style.display = 'block';
+    box.textContent = '✅ Protein target completed for today.';
+    return;
+  }
+
+  box.style.display = 'block';
+  box.textContent = '🤖 Finding a practical meal to cover about ' + remaining + 'g protein…';
+  btn.disabled = true;
+
+  const profile = calculated
+    ? `Weight ${userData.w}kg, Lean Mass ${userData.lbm.toFixed(1)}kg, Goal ${userData.goal}, Target Calories ${Math.round(userData.target)}`
+    : `Body weight ${quickBW}kg, body-weight-only estimate`;
+
+  const prompt = `The user needs to complete today's protein target.
+Current target: ${target}g protein.
+Already eaten: ${eaten}g.
+Protein remaining: ${remaining}g.
+Profile: ${profile}.
+
+Suggest ONE practical meal or meal combination that provides approximately ${remaining}g protein, using common Indian foods where suitable. Include exact food quantities and an estimated protein total. Do not suggest an entire daily diet. Keep it concise and actionable.`;
+
+  try {
+    const reply = await callAIAPI(
+      'You are IronCoach, a fitness nutrition coach. Suggest one practical meal to complete the remaining protein target. Be concise and specific with quantities.',
+      [{role:'user', content:prompt}],
+      900,
+      0.5
+    );
+    box.textContent = reply;
+  } catch (err) {
+    box.textContent = '⚠️ ' + (err?.message || 'Could not generate a protein-completion meal.');
+  } finally {
+    btn.disabled = false;
+  }
+}
+
 // ── PROTEIN TARGET BY GOAL ──
 const PROTEIN_MULTIPLIERS = { cut: 2.4, maintain: 2.2, bulk: 2.0 };
 function renderProteinByGoal(lbm, goal, approx) {
@@ -1173,81 +1410,6 @@ function renderProteinByGoal(lbm, goal, approx) {
   }).join('');
 }
 
-// ── MEAL PHOTO LOG (stored locally on this device) ──
-let mealLog = [];
-let pendingPhotoDataUrl = null;
-
-function loadMealLog() {
-  try {
-    const raw = localStorage.getItem('ironbody_meal_log');
-    mealLog = raw ? JSON.parse(raw) : [];
-  } catch (e) { mealLog = []; }
-}
-
-function saveMealLog() {
-  try { localStorage.setItem('ironbody_meal_log', JSON.stringify(mealLog)); } catch (e) {}
-}
-
-function handlePhotoSelect(event) {
-  const file = event.target.files[0];
-  if (!file) return;
-  const reader = new FileReader();
-  reader.onload = () => {
-    pendingPhotoDataUrl = reader.result;
-    const label = document.getElementById('photo-upload-label');
-    label.textContent = '✅ ' + file.name;
-    label.classList.add('has-file');
-  };
-  reader.readAsDataURL(file);
-}
-
-function addMealPhoto() {
-  if (!pendingPhotoDataUrl) {
-    alert('Choose a photo first.');
-    return;
-  }
-  const labelInput = document.getElementById('meal-photo-label');
-  const label = labelInput.value.trim() || 'Meal';
-  mealLog.unshift({
-    id: Date.now(),
-    img: pendingPhotoDataUrl,
-    label,
-    time: new Date().toLocaleString('en-IN', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })
-  });
-  saveMealLog();
-  pendingPhotoDataUrl = null;
-  labelInput.value = '';
-  const uploadLabel = document.getElementById('photo-upload-label');
-  uploadLabel.textContent = '📷 Choose Photo';
-  uploadLabel.classList.remove('has-file');
-  document.getElementById('meal-photo-file').value = '';
-  renderMealLog();
-}
-
-function deleteMealPhoto(id) {
-  mealLog = mealLog.filter(m => m.id !== id);
-  saveMealLog();
-  renderMealLog();
-}
-
-function renderMealLog() {
-  const grid = document.getElementById('meal-log-grid');
-  if (!grid) return;
-  if (!mealLog.length) {
-    grid.innerHTML = '<div class="meal-log-empty">No meals logged yet — add your first photo above.</div>';
-    return;
-  }
-  grid.innerHTML = mealLog.map(m => `
-    <div class="meal-log-item">
-      <div class="meal-log-del" onclick="deleteMealPhoto(${m.id})">✕</div>
-      <img src="${m.img}" alt="${m.label}">
-      <div class="meal-log-caption">
-        <div class="meal-log-label">${m.label}</div>
-        <div class="meal-log-time">${m.time}</div>
-      </div>
-    </div>
-  `).join('');
-}
 
 
 // ── SHARED: CALL DEPLOYED GEMINI AI API ──
@@ -1682,7 +1844,6 @@ async function checkAIBackend() {
 }
 
 // ── INIT ──
-loadMealLog();
 renderHydration();
 </script>
 </body>
