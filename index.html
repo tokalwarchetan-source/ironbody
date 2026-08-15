@@ -1228,27 +1228,67 @@ function renderMealLog() {
 }
 
 
-// ── SHARED: CALL DEPLOYED AI API ──
+// ── SHARED: CALL DEPLOYED GEMINI AI API ──
 async function callAIAPI(systemPrompt, messages, maxTokens, temperature) {
-  // Calls the Flask backend on the same deployed site.
   const response = await fetch('/api/chat', {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: {
+      'Content-Type': 'application/json',
+      'Accept': 'application/json'
+    },
     body: JSON.stringify({
-      systemPrompt,
-      messages,
-      maxTokens: maxTokens || 1000,
-      temperature: temperature !== undefined ? temperature : 1
+      systemPrompt: systemPrompt,
+      messages: messages,
+      maxTokens: maxTokens || 2000,
+      temperature: temperature !== undefined ? temperature : 0.7
     })
   });
-  const data = await response.json();
-  if (!response.ok) {
-    throw new Error(data?.error?.message || data?.error || `API error (${response.status})`);
+
+  // Read as text first so HTML error pages do not cause:
+  // "Unexpected token < ... is not valid JSON"
+  const raw = await response.text();
+
+  let data;
+  try {
+    data = JSON.parse(raw);
+  } catch (error) {
+    console.error('AI API returned non-JSON:', raw);
+
+    if (raw.includes('<!DOCTYPE') || raw.includes('<html')) {
+      throw new Error(
+        'The AI server returned an HTML page instead of JSON. ' +
+        'Check that the Flask /api/chat route is deployed correctly.'
+      );
+    }
+
+    throw new Error(
+      'Server returned invalid JSON: ' + raw.substring(0, 250)
+    );
   }
+
+  if (!response.ok) {
+    throw new Error(
+      data?.error?.message ||
+      data?.error ||
+      `API error (${response.status})`
+    );
+  }
+
+  // Current Flask/Gemini response format
   if (data.content && data.content[0] && data.content[0].text) {
     return data.content[0].text;
   }
-  throw new Error('Empty response');
+
+  // Also support a simple Gemini-style text response if the backend returns it.
+  if (typeof data.text === 'string' && data.text.trim()) {
+    return data.text.trim();
+  }
+
+  if (typeof data.response === 'string' && data.response.trim()) {
+    return data.response.trim();
+  }
+
+  throw new Error('Gemini returned an empty response.');
 }
 
 function parseJsonFromAI(text) {
@@ -1603,9 +1643,16 @@ function appendMessage(role, text, isTyping = false) {
 async function checkAIBackend() {
   try {
     const r = await fetch('/health', { cache: 'no-store' });
-    const d = await r.json();
-    console.log('IronBody AI health:', d);
-    return d;
+    const raw = await r.text();
+
+    try {
+      const d = JSON.parse(raw);
+      console.log('IronBody AI health:', d);
+      return d;
+    } catch (e) {
+      console.warn('Health endpoint returned non-JSON:', raw.substring(0, 200));
+      return null;
+    }
   } catch (e) {
     console.warn('IronBody backend unavailable:', e);
     return null;
