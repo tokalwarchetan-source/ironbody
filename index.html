@@ -626,7 +626,7 @@
     <div class="card">
       <div class="card-title">Protein Completion Coach</div>
       <p style="font-size:12px;color:var(--ghost);margin-bottom:14px;">
-        Enter how much protein you have already eaten today. IronBody will calculate the remaining protein and suggest a practical meal to finish today's target.
+        Enter how much protein you have already eaten today. IronBody calculates the remaining protein, then sends it to the AI Diet Coach to build the leftover meal plan.
       </p>
 
       <div class="protein-completion-grid">
@@ -662,8 +662,8 @@
       </div>
 
       <div class="pc-action-row">
-        <button class="btn pc-suggest-btn" id="pc-suggest-btn" onclick="suggestProteinCompletion()">
-          🍽 SUGGEST MEAL TO COMPLETE PROTEIN
+        <button class="btn pc-suggest-btn" id="pc-suggest-btn" onclick="openProteinPlanInDietCoach()">
+          🍽 SEND REMAINING PROTEIN TO AI DIET COACH
         </button>
         <button class="pc-reset-btn" onclick="resetProteinCompletion()">RESET</button>
       </div>
@@ -1338,7 +1338,7 @@ function resetProteinCompletion() {
   }
 }
 
-async function suggestProteinCompletion() {
+function openProteinPlanInDietCoach() {
   const target = getProteinTarget();
   if (!target) {
     alert('First calculate Body Metrics or enter your body weight in Weight Nutrition.');
@@ -1347,45 +1347,35 @@ async function suggestProteinCompletion() {
 
   const eaten = Math.max(0, Number(document.getElementById('pc-eaten').value) || 0);
   const remaining = Math.max(0, target - eaten);
-  const box = document.getElementById('pc-suggestion');
-  const btn = document.getElementById('pc-suggest-btn');
+  const status = document.getElementById('pc-suggestion');
+
+  updateProteinCompletion();
 
   if (remaining <= 0) {
-    box.style.display = 'block';
-    box.textContent = '✅ Protein target completed for today.';
+    status.style.display = 'block';
+    status.textContent = '✅ Your protein target is already complete for today.';
     return;
   }
 
-  box.style.display = 'block';
-  box.textContent = '🤖 Finding a practical meal to cover about ' + remaining + 'g protein…';
-  btn.disabled = true;
+  status.style.display = 'block';
+  status.textContent = '↗ Remaining protein sent to AI Diet Coach. The coach will ask whether you want a new meal or a repeated meal before generating it.';
 
-  const profile = calculated
-    ? `Weight ${userData.w}kg, Lean Mass ${userData.lbm.toFixed(1)}kg, Goal ${userData.goal}, Target Calories ${Math.round(userData.target)}`
-    : `Body weight ${quickBW}kg, body-weight-only estimate`;
+  const input = document.getElementById('nu-chat-input');
+  const section = document.getElementById('tab-nutrition');
+  if (section) section.scrollIntoView({ behavior: 'smooth', block: 'start' });
 
-  const prompt = `The user needs to complete today's protein target.
-Current target: ${target}g protein.
-Already eaten: ${eaten}g.
-Protein remaining: ${remaining}g.
-Profile: ${profile}.
+  const prompt =
+    `[PROTEIN_COMPLETION_REQUEST]\n` +
+    `Today's protein target: ${target}g.\n` +
+    `Already eaten today: ${eaten}g.\n` +
+    `Protein remaining: ${remaining}g.\n\n` +
+    `I need a leftover-protein meal plan to cover approximately ${remaining}g protein. ` +
+    `Ask me the required new-meal-or-repeat-meal question first.`;
 
-Suggest ONE practical meal or meal combination that provides approximately ${remaining}g protein, using common Indian foods where suitable. Include exact food quantities and an estimated protein total. Do not suggest an entire daily diet. Keep it concise and actionable.`;
-
-  try {
-    const reply = await callAIAPI(
-      'You are IronCoach, a fitness nutrition coach. Suggest one practical meal to complete the remaining protein target. Be concise and specific with quantities.',
-      [{role:'user', content:prompt}],
-      900,
-      0.5
-    );
-    box.textContent = reply;
-  } catch (err) {
-    box.textContent = '⚠️ ' + (err?.message || 'Could not generate a protein-completion meal.');
-  } finally {
-    btn.disabled = false;
-  }
+  input.value = prompt;
+  sendNutritionChat();
 }
+
 
 // ── PROTEIN TARGET BY GOAL ──
 const PROTEIN_MULTIPLIERS = { cut: 2.4, maintain: 2.2, bulk: 2.0 };
@@ -1504,6 +1494,15 @@ IMPORTANT PLAN SCOPE: When the user asks for a meal plan, diet plan, food plan, 
 Protein targets differ by goal: Cut ≈ 2.4g per kg lean mass (protects muscle in a deficit), Maintain ≈ 2.2g per kg lean mass, Bulk ≈ 2.0g per kg lean mass (already in a surplus, so slightly less per kg is needed). Use these multipliers when asked about protein targets.
 
 CRITICAL: Every meal plan or recipe you generate must be UNIQUE and DIFFERENT from previous ones. Vary the foods, timing, structure, and approach each time. Never repeat the exact same plan.
+
+PROTEIN COMPLETION MODE:
+When a user is sent here from the Protein Completion Coach, the message will contain a remaining protein amount and the marker [PROTEIN_COMPLETION_REQUEST].
+On EVERY protein-completion request, ask exactly ONE question BEFORE giving the meal plan:
+"Do you want a completely new meal, or should I repeat a meal you already had?"
+Do not generate the meal plan until the user answers that question.
+If the user chooses NEW, create a fresh meal/meal combination that covers approximately the remaining protein and do not reuse the previous meal.
+If the user chooses REPEAT, reuse a suitable meal from the conversation/history and adjust the quantity if needed to match the remaining protein.
+After the user answers, give ONLY today's leftover-protein meal plan needed to cover the remaining protein. Do not generate a full-day plan unless the user asks for one. Include exact quantities and estimated protein.
 
 Format meal plans clearly with time slots and macro estimates. Keep responses concise but complete — no fluff, no markdown symbols.`;
   if (calculated && userData.w) {
@@ -1784,6 +1783,11 @@ IMPORTANT PLAN SCOPE: When the user asks for a meal plan, diet plan, food plan, 
 Protein targets differ by goal: Cut ≈ 2.4g per kg lean mass (protects muscle in a deficit), Maintain ≈ 2.2g per kg lean mass, Bulk ≈ 2.0g per kg lean mass (already in a surplus, so slightly less per kg is needed). Use these multipliers when asked about protein targets.
 
 CRITICAL: Every meal plan you generate must be UNIQUE and DIFFERENT from previous ones. Vary the foods, timing, structure, and approach each time. Never repeat the exact same plan.
+
+PROTEIN COMPLETION MODE:
+If the user message contains [PROTEIN_COMPLETION_REQUEST], ask exactly ONE question first:
+"Do you want a completely new meal, or should I repeat a meal you already had?"
+Wait for the answer. If NEW, make a fresh leftover-protein meal. If REPEAT, reuse a suitable meal from the conversation and adjust quantities. Do not give the meal until the user answers.
 
 Format meal plans clearly with time slots and macro estimates. Keep responses concise but complete — no fluff.`;
 
