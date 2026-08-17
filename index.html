@@ -1,1636 +1,305 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>IronBody — Gym Performance Hub</title>
-<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
-<style>
-  :root {
-    --black: #0a0a0a;
-    --charcoal: #141414;
-    --steel: #1e1e1e;
-    --iron: #2a2a2a;
-    --border: #333;
-    --plasma: #ff4d00;
-    --plasma-dim: rgba(255,77,0,0.12);
-    --plasma-glow: rgba(255,77,0,0.3);
-    --silver: #c8c8c8;
-    --ghost: #6b6b6b;
-    --white: #f0f0f0;
-    --green: #22c55e;
-    --yellow: #f59e0b;
-    --red: #ef4444;
-    --blue: #3b82f6;
-  }
-
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-
-  body {
-    background: var(--black);
-    color: var(--silver);
-    font-family: 'Inter', sans-serif;
-    font-size: 14px;
-    line-height: 1.6;
-    min-height: 100vh;
-  }
-
-  header {
-    border-bottom: 1px solid var(--border);
-    padding: 20px 32px;
-    display: flex;
-    align-items: center;
-    gap: 16px;
-    background: var(--charcoal);
-    position: sticky; top: 0; z-index: 100;
-  }
-  .logo { font-family: 'Bebas Neue', sans-serif; font-size: 28px; letter-spacing: 3px; color: var(--white); }
-  .logo span { color: var(--plasma); }
-  .tagline { font-size: 11px; color: var(--ghost); letter-spacing: 2px; text-transform: uppercase; }
-
-  .nav {
-    display: flex; gap: 2px; padding: 16px 32px 0;
-    border-bottom: 1px solid var(--border);
-    background: var(--charcoal); overflow-x: auto;
-  }
-  .nav-btn {
-    background: none; border: none; color: var(--ghost);
-    font-family: 'Inter', sans-serif; font-size: 12px; font-weight: 500;
-    letter-spacing: 1px; text-transform: uppercase; padding: 10px 20px;
-    cursor: pointer; border-bottom: 2px solid transparent;
-    white-space: nowrap; transition: all 0.2s;
-  }
-  .nav-btn:hover { color: var(--silver); }
-  .nav-btn.active { color: var(--plasma); border-bottom-color: var(--plasma); }
-
-  .container { max-width: 1100px; margin: 0 auto; padding: 32px 24px; }
-  .section { display: none; }
-  .section.active { display: block; }
-
-  .card {
-    background: var(--charcoal); border: 1px solid var(--border);
-    border-radius: 2px; padding: 24px; margin-bottom: 20px;
-  }
-  .card-title {
-    font-family: 'Bebas Neue', sans-serif; font-size: 18px;
-    letter-spacing: 2px; color: var(--white); margin-bottom: 20px;
-    display: flex; align-items: center; gap: 10px;
-  }
-  .card-title::before {
-    content: ''; width: 3px; height: 20px;
-    background: var(--plasma); display: block; flex-shrink: 0;
-  }
-
-  .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; }
-  .field label { display: block; font-size: 10px; letter-spacing: 1.5px; text-transform: uppercase; color: var(--ghost); margin-bottom: 6px; }
-  .field input, .field select {
-    width: 100%; background: var(--steel); border: 1px solid var(--border);
-    border-radius: 2px; color: var(--white); font-family: 'JetBrains Mono', monospace;
-    font-size: 14px; padding: 10px 14px; outline: none; transition: border-color 0.2s;
-  }
-  .field input:focus, .field select:focus { border-color: var(--plasma); }
-  .field select option { background: var(--steel); }
-
-  .btn {
-    background: var(--plasma); border: none; color: #fff;
-    font-family: 'Bebas Neue', sans-serif; font-size: 16px;
-    letter-spacing: 2px; padding: 12px 32px; cursor: pointer;
-    border-radius: 2px; margin-top: 20px; transition: background 0.2s, box-shadow 0.2s;
-  }
-  .btn:hover { background: #ff6a2a; box-shadow: 0 0 20px var(--plasma-glow); }
-  .btn:disabled { background: var(--iron); color: var(--ghost); cursor: not-allowed; box-shadow: none; }
-
-  .results-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px; margin-top: 24px; }
-  .result-box { background: var(--steel); border: 1px solid var(--border); border-radius: 2px; padding: 16px; text-align: center; }
-  .result-box.highlight { border-color: var(--plasma); background: var(--plasma-dim); }
-  .result-value { font-family: 'JetBrains Mono', monospace; font-size: 26px; font-weight: 600; color: var(--white); line-height: 1; }
-  .result-value.plasma { color: var(--plasma); }
-  .result-value.green { color: var(--green); }
-  .result-value.yellow { color: var(--yellow); }
-  .result-value.red { color: var(--red); }
-  .result-label { font-size: 10px; letter-spacing: 1px; text-transform: uppercase; color: var(--ghost); margin-top: 6px; }
-
-  .gauge-bar { width: 100%; height: 6px; background: var(--iron); border-radius: 3px; margin-top: 20px; position: relative; overflow: visible; }
-  .gauge-fill { height: 100%; border-radius: 3px; background: linear-gradient(90deg, var(--green), var(--yellow), var(--plasma), var(--red)); transition: width 0.8s ease; }
-  .gauge-marker { position: absolute; top: -5px; width: 16px; height: 16px; background: var(--white); border-radius: 50%; transform: translateX(-50%); border: 2px solid var(--plasma); transition: left 0.8s ease; box-shadow: 0 0 10px var(--plasma-glow); }
-  .gauge-labels { display: flex; justify-content: space-between; margin-top: 8px; font-size: 10px; color: var(--ghost); }
-
-  .advice-box { background: var(--plasma-dim); border: 1px solid rgba(255,77,0,0.3); border-radius: 2px; padding: 16px 20px; margin-top: 20px; }
-  .advice-box .advice-title { font-family: 'Bebas Neue', sans-serif; letter-spacing: 1.5px; font-size: 14px; color: var(--plasma); margin-bottom: 6px; }
-  .advice-box p { font-size: 13px; color: var(--silver); line-height: 1.7; }
-
-  .macro-row { display: flex; align-items: center; gap: 12px; padding: 12px 0; border-bottom: 1px solid var(--iron); }
-  .macro-row:last-child { border-bottom: none; }
-  .macro-name { width: 120px; font-size: 12px; color: var(--ghost); text-transform: uppercase; letter-spacing: 1px; }
-  .macro-bar-wrap { flex: 1; background: var(--iron); height: 8px; border-radius: 4px; }
-  .macro-bar { height: 100%; border-radius: 4px; transition: width 0.8s ease; }
-  .macro-amount { font-family: 'JetBrains Mono', monospace; font-size: 13px; color: var(--white); width: 70px; text-align: right; }
-
-  .tips-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 16px; }
-  .tip-card { background: var(--steel); border: 1px solid var(--border); border-radius: 2px; padding: 20px; }
-  .tip-icon { font-size: 24px; margin-bottom: 10px; }
-  .tip-title { font-family: 'Bebas Neue', sans-serif; font-size: 15px; letter-spacing: 1.5px; color: var(--white); margin-bottom: 8px; }
-  .tip-text { font-size: 12px; color: var(--ghost); line-height: 1.8; }
-
-  .water-grid { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 12px; }
-  .water-cup { width: 44px; height: 44px; background: var(--iron); border: 1px solid var(--border); border-radius: 2px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 20px; transition: all 0.15s; user-select: none; }
-  .water-cup.filled { background: rgba(59,130,246,0.2); border-color: var(--blue); }
-  .water-status { margin-top: 10px; font-family: 'JetBrains Mono', monospace; font-size: 13px; color: var(--blue); }
-
-  .results-panel { display: none; }
-  .results-panel.visible { display: block; }
-
-  /* ── AI CHATBOT ── */
-  #chat-fab {
-    position: fixed; bottom: 28px; right: 28px;
-    width: 58px; height: 58px; border-radius: 50%;
-    background: var(--plasma); border: none; cursor: pointer;
-    font-size: 26px; display: flex; align-items: center; justify-content: center;
-    box-shadow: 0 4px 24px var(--plasma-glow); z-index: 999;
-    transition: transform 0.2s, box-shadow 0.2s;
-  }
-  #chat-fab:hover { transform: scale(1.1); box-shadow: 0 6px 32px var(--plasma-glow); }
-
-  #chat-window {
-    position: fixed; bottom: 100px; right: 28px;
-    width: 380px; max-height: 560px;
-    background: var(--charcoal); border: 1px solid var(--border);
-    border-radius: 4px; display: none; flex-direction: column;
-    z-index: 998; box-shadow: 0 8px 40px rgba(0,0,0,0.6);
-    overflow: hidden;
-  }
-  #chat-window.open { display: flex; }
-
-  #chat-header {
-    padding: 14px 18px; background: var(--iron);
-    border-bottom: 1px solid var(--border);
-    display: flex; align-items: center; justify-content: space-between;
-  }
-  #chat-header-title { font-family: 'Bebas Neue', sans-serif; font-size: 17px; letter-spacing: 2px; color: var(--white); }
-  #chat-header-sub { font-size: 10px; color: var(--plasma); letter-spacing: 1px; text-transform: uppercase; margin-top: 1px; }
-  #chat-close { background: none; border: none; color: var(--ghost); font-size: 20px; cursor: pointer; padding: 0 4px; }
-  #chat-close:hover { color: var(--white); }
-
-  #chat-messages {
-    flex: 1; overflow-y: auto; padding: 16px;
-    display: flex; flex-direction: column; gap: 12px;
-    scrollbar-width: thin; scrollbar-color: var(--iron) transparent;
-  }
-  #chat-messages::-webkit-scrollbar { width: 4px; }
-  #chat-messages::-webkit-scrollbar-thumb { background: var(--iron); border-radius: 2px; }
-
-  .chat-msg {
-    max-width: 88%; font-size: 13px; line-height: 1.6;
-    padding: 10px 14px; border-radius: 3px;
-  }
-  .chat-msg.bot { background: var(--steel); color: var(--silver); align-self: flex-start; border-left: 3px solid var(--plasma); }
-  .chat-msg.user { background: var(--plasma-dim); color: var(--white); align-self: flex-end; border: 1px solid rgba(255,77,0,0.25); }
-  .chat-msg.typing { color: var(--ghost); font-style: italic; }
-
-  #chat-input-row {
-    display: flex; gap: 8px; padding: 12px 16px;
-    border-top: 1px solid var(--border); background: var(--steel);
-  }
-  #chat-input {
-    flex: 1; background: var(--iron); border: 1px solid var(--border);
-    border-radius: 2px; color: var(--white); font-family: 'Inter', sans-serif;
-    font-size: 13px; padding: 9px 12px; outline: none;
-    transition: border-color 0.2s;
-  }
-  #chat-input:focus { border-color: var(--plasma); }
-  #chat-send {
-    background: var(--plasma); border: none; color: #fff;
-    font-family: 'Bebas Neue', sans-serif; font-size: 14px;
-    letter-spacing: 1px; padding: 9px 18px; cursor: pointer;
-    border-radius: 2px; transition: background 0.2s;
-  }
-  #chat-send:hover { background: #ff6a2a; }
-  #chat-send:disabled { background: var(--iron); color: var(--ghost); cursor: not-allowed; }
-
-  .quick-btns { display: flex; flex-wrap: wrap; gap: 6px; padding: 0 16px 12px; }
-  .quick-btn {
-    background: var(--iron); border: 1px solid var(--border);
-    color: var(--silver); font-size: 11px; padding: 5px 10px;
-    border-radius: 2px; cursor: pointer; transition: all 0.15s;
-    font-family: 'Inter', sans-serif;
-  }
-  .quick-btn:hover { border-color: var(--plasma); color: var(--plasma); }
-
-  .meal-plan-card {
-    background: var(--steel); border: 1px solid var(--border);
-    border-radius: 2px; padding: 16px; margin-top: 8px;
-  }
-  .meal-plan-card h4 {
-    font-family: 'Bebas Neue', sans-serif; font-size: 15px;
-    letter-spacing: 1.5px; color: var(--plasma); margin-bottom: 10px;
-  }
-  .meal-row { display: flex; justify-content: space-between; align-items: flex-start; padding: 7px 0; border-bottom: 1px solid var(--iron); font-size: 12px; }
-  .meal-row:last-child { border-bottom: none; }
-  .meal-time { color: var(--ghost); text-transform: uppercase; letter-spacing: 1px; font-size: 10px; min-width: 90px; padding-top: 2px; }
-  .meal-foods { color: var(--silver); flex: 1; }
-  .meal-macros { font-family: 'JetBrains Mono', monospace; font-size: 10px; color: var(--plasma); text-align: right; margin-left: 8px; }
-
-  /* ── INLINE LOADER ── */
-  .ai-loading { font-size: 12px; color: var(--ghost); padding: 16px 0; font-style: italic; }
-
-  /* ── BODY-WEIGHT NUTRITION TARGETS ── */
-  .bw-target-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:12px; margin-top:16px; }
-  .bw-target-box { background:var(--steel); border:1px solid var(--border); border-radius:2px; padding:18px; text-align:center; }
-  .bw-target-box .bw-icon { font-size:24px; margin-bottom:8px; }
-  .bw-target-box .bw-label { font-size:10px; letter-spacing:1.5px; text-transform:uppercase; color:var(--ghost); margin-bottom:7px; }
-  .bw-target-box .bw-value { font-family:'JetBrains Mono',monospace; font-size:22px; font-weight:600; color:var(--white); }
-  .bw-target-box .bw-note { font-size:10px; color:var(--ghost); margin-top:7px; line-height:1.5; }
-  .bw-input-row { display:flex; gap:10px; align-items:end; margin-top:14px; }
-  .bw-input-row .field { flex:1; }
-  .bw-update-btn { border:1px solid var(--plasma); background:var(--plasma-dim); color:var(--plasma); padding:11px 16px; cursor:pointer; font-weight:600; }
-  .bw-update-btn:hover { background:var(--plasma); color:#fff; }
-
-  /* ── PROTEIN BY GOAL ── */
-  .goal-protein-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; margin-top: 16px; }
-  .goal-protein-box { background: var(--steel); border: 1px solid var(--border); border-radius: 2px; padding: 16px; text-align: center; position: relative; }
-  .goal-protein-box.active { border-color: var(--plasma); background: var(--plasma-dim); }
-  .goal-protein-box .gp-label { font-size: 10px; letter-spacing: 1.5px; text-transform: uppercase; color: var(--ghost); margin-bottom: 8px; }
-  .goal-protein-box .gp-value { font-family: 'JetBrains Mono', monospace; font-size: 24px; font-weight: 600; color: var(--white); }
-  .goal-protein-box.active .gp-value { color: var(--plasma); }
-  .goal-protein-box .gp-mult { font-size: 10px; color: var(--ghost); margin-top: 6px; }
-  .goal-protein-box .gp-tag { position: absolute; top: -8px; right: 8px; font-size: 9px; background: var(--plasma); color: #fff; padding: 2px 7px; letter-spacing: 1px; }
-
-  /* ── MEAL PHOTO LOG ── */
-  .photo-log-input-row { display: flex; gap: 10px; flex-wrap: wrap; align-items: flex-end; margin-bottom: 16px; }
-  .photo-log-input-row .field { flex: 1; min-width: 160px; margin-bottom: 0; }
-  #meal-photo-file { display: none; }
-  .photo-upload-btn {
-    background: var(--steel); border: 1px dashed var(--border); color: var(--silver);
-    font-size: 12px; padding: 10px 16px; border-radius: 2px; cursor: pointer;
-    text-align: center; transition: all 0.2s; white-space: nowrap;
-  }
-  .photo-upload-btn:hover { border-color: var(--plasma); color: var(--plasma); }
-  .photo-upload-btn.has-file { border-style: solid; border-color: var(--green); color: var(--green); }
-  .meal-log-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 14px; margin-top: 8px; }
-  .meal-log-item { background: var(--steel); border: 1px solid var(--border); border-radius: 2px; overflow: hidden; position: relative; }
-  .meal-log-item img { width: 100%; height: 110px; object-fit: cover; display: block; }
-  .meal-log-caption { padding: 8px 10px; }
-  .meal-log-label { font-size: 11px; color: var(--white); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .meal-log-time { font-size: 9px; color: var(--ghost); margin-top: 2px; }
-  .meal-log-del {
-    position: absolute; top: 6px; right: 6px; width: 22px; height: 22px;
-    background: rgba(10,10,10,0.75); border: 1px solid var(--border); color: var(--silver);
-    border-radius: 50%; cursor: pointer; font-size: 12px; display: flex;
-    align-items: center; justify-content: center; line-height: 1;
-  }
-  .meal-log-del:hover { color: var(--red); border-color: var(--red); }
-  .meal-log-empty { font-size: 12px; color: var(--ghost); padding: 12px 0; }
-
-  /* ── WORKOUT AI CHAT (embedded) ── */
-  .wo-goal-badges { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px; }
-  .wo-goal-badge {
-    background: var(--steel); border: 1px solid var(--border); color: var(--silver);
-    font-size: 12px; padding: 8px 16px; border-radius: 2px; cursor: pointer;
-    letter-spacing: 0.5px; transition: all 0.2s; font-family: 'Inter', sans-serif;
-  }
-  .wo-goal-badge:hover { border-color: var(--plasma); color: var(--plasma); }
-  .wo-goal-badge.current { border-color: var(--plasma); background: var(--plasma-dim); color: var(--plasma); }
-  #wo-week-tag {
-    display: inline-block; font-family: 'JetBrains Mono', monospace; font-size: 11px;
-    color: var(--ghost); background: var(--iron); padding: 4px 10px; border-radius: 2px; margin-bottom: 16px;
-  }
-  #wo-chat-messages {
-    background: var(--charcoal); border: 1px solid var(--border); border-radius: 2px;
-    min-height: 320px; max-height: 560px; overflow-y: auto; padding: 18px;
-    display: flex; flex-direction: column; gap: 12px;
-  }
-  .wo-msg { max-width: 90%; font-size: 13px; line-height: 1.7; padding: 12px 16px; border-radius: 3px; white-space: pre-wrap; }
-  .wo-msg.bot { background: var(--steel); color: var(--silver); align-self: flex-start; border-left: 3px solid var(--plasma); }
-  .wo-msg.user { background: var(--plasma-dim); color: var(--white); align-self: flex-end; border: 1px solid rgba(255,77,0,0.25); }
-  .wo-msg.typing { color: var(--ghost); font-style: italic; }
-  #wo-chat-input-row { display: flex; gap: 8px; margin-top: 12px; }
-  #wo-chat-input {
-    flex: 1; background: var(--steel); border: 1px solid var(--border);
-    border-radius: 2px; color: var(--white); font-family: 'Inter', sans-serif;
-    font-size: 13px; padding: 11px 14px; outline: none; transition: border-color 0.2s;
-  }
-  #wo-chat-input:focus { border-color: var(--plasma); }
-  #wo-chat-send {
-    background: var(--plasma); border: none; color: #fff; font-family: 'Bebas Neue', sans-serif;
-    font-size: 15px; letter-spacing: 1.5px; padding: 11px 22px; cursor: pointer; border-radius: 2px;
-  }
-  #wo-chat-send:hover { background: #ff6a2a; }
-  #wo-chat-send:disabled { background: var(--iron); color: var(--ghost); cursor: not-allowed; }
-
-  #nu-chat-messages {
-    display: flex; flex-direction: column; gap: 10px;
-    max-height: 420px; overflow-y: auto; padding: 4px 4px 8px;
-  }
-  .nu-msg { max-width: 90%; font-size: 13px; line-height: 1.7; padding: 12px 16px; border-radius: 3px; white-space: pre-wrap; }
-  .nu-msg.bot { background: var(--steel); color: var(--silver); align-self: flex-start; border-left: 3px solid var(--plasma); }
-  .nu-msg.user { background: var(--plasma-dim); color: var(--white); align-self: flex-end; border: 1px solid rgba(255,77,0,0.25); }
-  .nu-msg.typing { color: var(--ghost); font-style: italic; }
-  #nu-chat-input-row { display: flex; gap: 8px; margin-top: 12px; }
-  #nu-chat-input-row input {
-    flex: 1; background: var(--steel); border: 1px solid var(--border);
-    border-radius: 2px; color: var(--white); font-family: 'Inter', sans-serif;
-    font-size: 13px; padding: 10px 14px; outline: none;
-  }
-  #nu-chat-input-row input:focus { border-color: var(--plasma); }
-  #nu-chat-send {
-    background: var(--plasma); border: none; color: #fff;
-    font-family: 'Bebas Neue', sans-serif; font-size: 14px; letter-spacing: 1px;
-    padding: 0 22px; cursor: pointer; border-radius: 2px;
-  }
-  #nu-chat-send:hover { background: #ff6a2a; }
-  #nu-chat-send:disabled { background: var(--iron); color: var(--ghost); cursor: not-allowed; }
-  .nu-quick-row { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 14px; }
-  .nu-quick-btn {
-    background: var(--steel); border: 1px solid var(--border); color: var(--silver);
-    font-size: 11px; padding: 8px 14px; border-radius: 20px; cursor: pointer;
-    transition: all 0.2s;
-  }
-  .nu-quick-btn:hover { border-color: var(--plasma); color: var(--white); }
-
-  @media (max-width: 600px) {
-    header { padding: 16px; }
-    .container { padding: 20px 16px; }
-    .nav { padding: 12px 16px 0; }
-    .nav-btn { padding: 8px 12px; font-size: 11px; }
-    #chat-window { width: calc(100vw - 32px); right: 16px; bottom: 90px; }
-    #chat-fab { bottom: 20px; right: 20px; }
-  }
-</style>
-</head>
-<body>
-
-<header>
-  <div>
-    <div class="logo">IRON<span>BODY</span></div>
-    <div class="tagline">Gym Performance Hub</div>
-  </div>
-</header>
-
-<nav class="nav">
-  <button class="nav-btn active" onclick="showTab('metrics', this)">Body Metrics</button>
-  <button class="nav-btn" onclick="showTab('bw-nutrition', this)">Weight Nutrition</button>
-  <button class="nav-btn" onclick="showTab('nutrition', this)">Nutrition</button>
-  <button class="nav-btn" onclick="showTab('workout', this)">Workout Plan</button>
-  <button class="nav-btn" onclick="showTab('tips', this)">Pro Tips</button>
-  <button class="nav-btn" onclick="showTab('hydration', this)">Hydration</button>
-</nav>
-
-<!-- ══════ TAB 1: METRICS ══════ -->
-<div id="tab-metrics" class="section active">
-<div class="container">
-  <div class="card">
-    <div class="card-title">Body Metrics Calculator</div>
-    <div class="form-grid">
-      <div class="field"><label>Weight (kg)</label><input type="number" id="weight" placeholder="75" step="0.1"></div>
-      <div class="field"><label>Height (cm)</label><input type="number" id="height" placeholder="175" step="0.1"></div>
-      <div class="field"><label>Age</label><input type="number" id="age" placeholder="25"></div>
-      <div class="field">
-        <label>Gender</label>
-        <select id="gender" onchange="updateHipLabel()">
-          <option value="male">Male</option>
-          <option value="female">Female</option>
-        </select>
-      </div>
-      <div class="field"><label>Neck Circumference (cm)</label><input type="number" id="neck" placeholder="38" step="0.1"></div>
-      <div class="field"><label>Waist Circumference (cm)</label><input type="number" id="waist" placeholder="82" step="0.1"></div>
-      <div class="field"><label id="hip-label">Hip Circumference (cm)</label><input type="number" id="hip" placeholder="95" step="0.1"></div>
-      <div class="field">
-        <label>Activity Level</label>
-        <select id="activity">
-          <option value="1.2">Sedentary (desk job)</option>
-          <option value="1.375">Lightly active (1–3x/week)</option>
-          <option value="1.55" selected>Moderately active (3–5x/week)</option>
-          <option value="1.725">Very active (6–7x/week)</option>
-          <option value="1.9">Athlete (2x/day)</option>
-        </select>
-      </div>
-      <div class="field">
-        <label>Goal</label>
-        <select id="goal">
-          <option value="cut">Cut (Fat Loss)</option>
-          <option value="maintain">Maintain</option>
-          <option value="bulk">Bulk (Muscle Gain)</option>
-        </select>
-      </div>
-    </div>
-    <button class="btn" onclick="calculate()">Calculate All Metrics</button>
-  </div>
-
-  <div class="results-panel" id="results-panel">
-    <div class="card">
-      <div class="card-title">Your Results</div>
-      <div class="results-grid">
-        <div class="result-box highlight"><div class="result-value plasma" id="r-bmi">—</div><div class="result-label">BMI</div></div>
-        <div class="result-box"><div class="result-value" id="r-bf">—</div><div class="result-label">Body Fat %</div></div>
-        <div class="result-box"><div class="result-value" id="r-lbm">—</div><div class="result-label">Lean Mass (kg)</div></div>
-        <div class="result-box"><div class="result-value" id="r-fat-kg">—</div><div class="result-label">Fat Mass (kg)</div></div>
-        <div class="result-box"><div class="result-value" id="r-bmr">—</div><div class="result-label">BMR (kcal/day)</div></div>
-        <div class="result-box"><div class="result-value" id="r-tdee">—</div><div class="result-label">TDEE (kcal/day)</div></div>
-        <div class="result-box highlight"><div class="result-value plasma" id="r-target">—</div><div class="result-label">Target Calories</div></div>
-        <div class="result-box"><div class="result-value" id="r-ibw">—</div><div class="result-label">Ideal Weight (kg)</div></div>
-      </div>
-      <div style="margin-top:24px;">
-        <div style="font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--ghost);margin-bottom:8px;">BMI Scale</div>
-        <div class="gauge-bar">
-          <div class="gauge-fill" id="gauge-fill" style="width:100%"></div>
-          <div class="gauge-marker" id="gauge-marker" style="left:0%"></div>
-        </div>
-        <div class="gauge-labels">
-          <span>Underweight &lt;18.5</span><span>Normal 18.5–25</span><span>Overweight 25–30</span><span>Obese &gt;30</span>
-        </div>
-      </div>
-      <div class="advice-box" id="advice-box">
-        <div class="advice-title">📊 Coach Assessment</div>
-        <p id="advice-text"></p>
-      </div>
-    </div>
-    <div class="card">
-      <div class="card-title">Body Fat Classification</div>
-      <div id="bf-classification" style="padding:12px 0; font-size:14px;"></div>
-    </div>
-  </div>
-</div>
-</div>
-
-<!-- ══════ TAB: BODY-WEIGHT NUTRITION (STANDALONE) ══════ -->
-<div id="tab-bw-nutrition" class="section">
-<div class="container">
-  <div class="card">
-    <div class="card-title">Body-Weight Nutrition Plan</div>
-    <p style="font-size:12px;color:var(--ghost);margin-bottom:4px;">Enter just your body weight to get instant protein, carb and fiber targets — no need to calculate full Body Metrics first.</p>
-    <div class="bw-input-row">
-      <div class="field"><label>Body Weight (kg)</label><input type="number" id="bw-target-weight" placeholder="75" step="0.1" oninput="updateBodyWeightTargets()"></div>
-      <button class="bw-update-btn" onclick="updateBodyWeightTargets()">UPDATE</button>
-    </div>
-    <div class="bw-target-grid">
-      <div class="bw-target-box"><div class="bw-icon">🥩</div><div class="bw-label">Protein Intake</div><div class="bw-value" id="bw-protein">—</div><div class="bw-note">1.6–2.2 g/kg/day<br>Active gym training</div></div>
-      <div class="bw-target-box"><div class="bw-icon">🍚</div><div class="bw-label">Carbs / Day</div><div class="bw-value" id="bw-carbs">—</div><div class="bw-note">3–5 g/kg/day<br>Typical training range</div></div>
-      <div class="bw-target-box"><div class="bw-icon">⚡</div><div class="bw-label">Carb Loading</div><div class="bw-value" id="bw-carb-loading">—</div><div class="bw-note">5–7 g/kg/day<br>Higher-carb loading range</div></div>
-      <div class="bw-target-box"><div class="bw-icon">🌾</div><div class="bw-label">Fiber</div><div class="bw-value" id="bw-fiber">—</div><div class="bw-note">~0.35 g/kg/day<br>Increase with enough water</div></div>
-    </div>
-    <div class="card-title" style="margin-top:24px;">Protein Split Across Meals</div>
-    <p style="font-size:12px;color:var(--ghost);margin-bottom:4px;">Based on the mid-point of your body-weight protein target above, spread across the day.</p>
-    <div id="bw-protein-distribution"></div>
-  </div>
-</div>
-</div>
-
-<!-- ══════ TAB 2: NUTRITION ══════ -->
-<div id="tab-nutrition" class="section">
-<div class="container">
-  <div class="card" id="nutrition-locked">
-    <div class="card-title">Nutrition & Macros</div>
-    <p style="color:var(--ghost);font-size:13px;">⚠️ Calculate your Body Metrics (Tab 1) for a precise plan, or just enter your weight in the <strong>Weight Nutrition</strong> tab for a quick estimate, to unlock this section.</p>
-  </div>
-
-  <div id="nutrition-data" style="display:none;">
-    <div class="card">
-      <div class="card-title">AI Diet Coach</div>
-      <p style="font-size:12px;color:var(--ghost);margin-bottom:14px;">Ask for a meal plan, macro breakdown, recipe, or any nutrition question — tailored to your stats and goal. Every answer is generated fresh.</p>
-      <div class="nu-quick-row">
-        <button class="nu-quick-btn" onclick="sendQuickNutrition('Give me a high-protein vegetarian meal plan for muscle gain')">🥗 Veg Bulk Plan</button>
-        <button class="nu-quick-btn" onclick="sendQuickNutrition('Non-veg fat loss meal plan for my calorie target')">🍗 Non-Veg Cut</button>
-        <button class="nu-quick-btn" onclick="sendQuickNutrition('Give me one unique high-protein recipe idea')">🍳 Recipe Idea</button>
-        <button class="nu-quick-btn" onclick="sendQuickNutrition('Best pre and post workout meals for my goal')">⚡ Workout Meals</button>
-        <button class="nu-quick-btn" onclick="sendQuickNutrition('Give me a unique Indian diet plan for gym goers')">🇮🇳 Indian Diet</button>
-      </div>
-      <div id="nu-chat-messages">
-        <div class="nu-msg bot">👋 Hey! I'm your AI Diet Coach. Ask me for a personalised meal plan, macro breakdown, pre/post workout meals, or anything about fitness nutrition. Every plan I generate is unique!</div>
-      </div>
-      <div id="nu-chat-input-row">
-        <input id="nu-chat-input" type="text" placeholder="Ask your AI diet coach…" onkeydown="if(event.key==='Enter') sendNutritionChat()">
-        <button id="nu-chat-send" onclick="sendNutritionChat()">SEND</button>
-      </div>
-    </div>
-
-
-    <div class="card">
-      <div class="card-title">Daily Macro Targets</div>
-      <p id="nutrition-approx-note" style="font-size:12px;color:var(--yellow);margin-bottom:14px;display:none;">Estimated from body weight only (no height/age/body-fat on file) — general ranges, not a precise target. Calculate full Body Metrics for accuracy.</p>
-      <div class="results-grid" style="margin-bottom:24px;">
-        <div class="result-box highlight"><div class="result-value plasma" id="n-protein">—</div><div class="result-label">Protein (g)</div></div>
-        <div class="result-box"><div class="result-value" id="n-carbs">—</div><div class="result-label">Carbs (g)</div></div>
-        <div class="result-box"><div class="result-value" id="n-fat">—</div><div class="result-label">Fat (g)</div></div>
-        <div class="result-box"><div class="result-value" id="n-fiber">—</div><div class="result-label">Fiber (g)</div></div>
-      </div>
-      <div id="macro-bars"></div>
-      <div class="card-title" style="margin-top:24px;">Daily Protein Targets</div>
-      <p style="font-size:12px;color:var(--ghost);margin-bottom:4px;">Based on your lean body mass and goal — for the simpler body-weight-only version, see the "Weight Nutrition" tab.</p>
-      <div id="protein-distribution"></div>
-    </div>
-
-    <div class="card">
-      <div class="card-title">Protein Target By Goal</div>
-      <p style="font-size:12px;color:var(--ghost);margin-bottom:4px;">Protein needs change with your goal — higher per kg on a cut to protect lean mass, slightly lower on a bulk since total calories are already abundant.</p>
-      <p id="goal-protein-approx-note" style="font-size:11px;color:var(--yellow);margin-bottom:4px;display:none;">Using total body weight as a stand-in for lean mass since body fat % is unknown — calculate full Body Metrics for a precise number.</p>
-      <div class="goal-protein-grid" id="goal-protein-grid"></div>
-    </div>
-
-    <div class="card">
-      <div class="card-title">Meal Photo Log</div>
-      <p style="font-size:12px;color:var(--ghost);margin-bottom:14px;">Upload a photo of what you ate to keep a visual track record. Stored on this device only.</p>
-      <div class="photo-log-input-row">
-        <label class="photo-upload-btn" id="photo-upload-label" for="meal-photo-file">📷 Choose Photo</label>
-        <input type="file" id="meal-photo-file" accept="image/*" capture="environment" onchange="handlePhotoSelect(event)">
-        <div class="field"><label>Label (optional)</label><input type="text" id="meal-photo-label" placeholder="e.g. Lunch — chicken & rice"></div>
-        <button class="btn" style="margin-top:0;" onclick="addMealPhoto()">Add To Log</button>
-      </div>
-      <div class="meal-log-grid" id="meal-log-grid"></div>
-    </div>
-
-    <div class="card">
-      <div class="card-title">AI Food Photo Analyzer</div>
-      <p style="font-size:12px;color:var(--ghost);margin-bottom:14px;">Upload a food photo and the ML vision model will identify the dish, give a recognition-confidence score, and estimate calories, protein, carbs, fat and fiber for the serving shown. If you enter what you think the food is, it will also check the visual match.</p>
-      <div class="photo-log-input-row">
-        <label class="photo-upload-btn" for="food-analysis-file">🤖 Choose Food Photo</label>
-        <input type="file" id="food-analysis-file" accept="image/png,image/jpeg,image/webp" onchange="previewFoodAnalysis(event)">
-        <div class="field"><label>Expected Food (optional)</label><input type="text" id="expected-food" placeholder="e.g. Chicken biryani"></div>
-        <button class="btn" style="margin-top:0;" id="food-analyze-btn" onclick="analyzeFoodPhoto()">ANALYZE</button>
-      </div>
-      <div id="food-analysis-preview" style="display:none;margin-top:16px;"></div>
-      <div id="food-analysis-result" style="display:none;margin-top:16px;"></div>
-    </div>
-
-
-
-    <div class="card">
-      <div class="card-title">Meal Timing Protocol</div>
-      <div id="meal-timing"></div>
-    </div>
-
-    <div class="card">
-      <div class="card-title">Top Protein Sources</div>
-      <div id="protein-sources"></div>
-    </div>
-
-    <div class="card">
-      <div class="card-title">Supplement Stack</div>
-      <div id="supplement-stack"></div>
-    </div>
-  </div>
-</div>
-</div>
-
-<!-- ══════ TAB 3: WORKOUT ══════ -->
-<div id="tab-workout" class="section">
-<div class="container">
-  <div class="card">
-    <div class="card-title">AI Workout Coach</div>
-    <p style="font-size:12px;color:var(--ghost);margin-bottom:16px;">Your weekly split is generated live and tailored to your goal — Cut, Bulk, or Maintain each get a different training style. A fresh plan is generated automatically every new week, never the exact same as last week's.</p>
-    <span id="wo-week-tag">Loading week…</span>
-    <div class="wo-goal-badges">
-      <button class="wo-goal-badge" data-goal="cut" onclick="requestWeekWorkout('cut')">🔥 Cut Workout</button>
-      <button class="wo-goal-badge" data-goal="maintain" onclick="requestWeekWorkout('maintain')">⚖️ Maintain Workout</button>
-      <button class="wo-goal-badge" data-goal="bulk" onclick="requestWeekWorkout('bulk')">💪 Bulk Workout</button>
-      <button class="wo-goal-badge" onclick="requestWeekWorkout(null, true)">🔄 Regenerate This Week</button>
-    </div>
-    <div id="wo-chat-messages">
-      <div class="wo-msg bot">👋 I'm your AI Workout Coach. Tap a goal above to get this week's training split, or just ask me anything — "give me a 4-day plan", "I have a sore shoulder", "swap leg day", etc. Every week's plan is freshly generated and tailored to Cut / Maintain / Bulk.</div>
-    </div>
-    <div id="wo-chat-input-row">
-      <input id="wo-chat-input" type="text" placeholder="Ask your AI coach for a workout…" onkeydown="if(event.key==='Enter') sendWorkoutChat()">
-      <button id="wo-chat-send" onclick="sendWorkoutChat()">SEND</button>
-    </div>
-  </div>
-  <div class="card">
-    <div class="card-title">Progressive Overload Guide</div>
-    <div class="tips-grid">
-      <div class="tip-card"><div class="tip-icon">📈</div><div class="tip-title">When to Add Weight</div><div class="tip-text">When you complete all sets at the top rep range (e.g. 4×12) with perfect form — add 2.5 kg next session.</div></div>
-      <div class="tip-card"><div class="tip-icon">⏱</div><div class="tip-title">Rest Periods</div><div class="tip-text">Compound lifts: 2–3 min rest. Isolation work: 60–90 sec. Keep rest consistent to measure progress.</div></div>
-      <div class="tip-card"><div class="tip-icon">📋</div><div class="tip-title">Track Every Session</div><div class="tip-text">Log weight, sets, reps. You can't manage what you don't measure. Review weekly to identify plateaus.</div></div>
-    </div>
-  </div>
-</div>
-</div>
-
-<!-- ══════ TAB 4: PRO TIPS ══════ -->
-<div id="tab-tips" class="section">
-<div class="container">
-  <div class="card">
-    <div class="card-title">Coach's Corner — Evidence-Based Advice</div>
-    <p style="font-size:12px;color:var(--ghost);margin-bottom:4px;">Everything below is backed by sports science, not social media trends.</p>
-  </div>
-  <div class="tips-grid">
-    <div class="tip-card"><div class="tip-icon">😴</div><div class="tip-title">Sleep is the Real Anabolic</div><div class="tip-text">80% of growth hormone is released during deep sleep. Aim for 7–9 hours. Consistent sleep and wake times matter more than duration alone. A single bad night drops testosterone by 10–15%.</div></div>
-    <div class="tip-card"><div class="tip-icon">🥩</div><div class="tip-title">Protein Distribution</div><div class="tip-text">Muscle protein synthesis peaks with 30–40g protein per meal. Spreading protein across 4 meals is more effective than two large hits. Have 20–40g within 2 hours post-workout.</div></div>
-    <div class="tip-card"><div class="tip-icon">🔥</div><div class="tip-title">Cardio Without Killing Gains</div><div class="tip-text">Keep cardio sessions to 20–30 min at 60–70% max HR (zone 2). This preserves muscle while burning fat. Avoid long runs on leg day — do it after upper body or on rest days.</div></div>
-    <div class="tip-card"><div class="tip-icon">🧠</div><div class="tip-title">Mind-Muscle Connection</div><div class="tip-text">Consciously squeezing the target muscle during each rep increases activation by up to 20%. Slow the eccentric (lowering) phase to 3 seconds — this is where most growth happens.</div></div>
-    <div class="tip-card"><div class="tip-icon">⚡</div><div class="tip-title">Pre-Workout Nutrition</div><div class="tip-text">Eat a balanced meal 2–3 hours before training. 45–60 min before: fast carbs + 20g protein. Caffeine 200–400mg peaks at 45–60 min — time it right or skip it if you train late.</div></div>
-    <div class="tip-card"><div class="tip-icon">🦵</div><div class="tip-title">Mobility is Performance</div><div class="tip-text">5 min dynamic warm-up before lifting + 5 min static stretch after. Poor hip mobility limits squat depth. Poor shoulder mobility limits press performance. Fix the root cause.</div></div>
-    <div class="tip-card"><div class="tip-icon">📉</div><div class="tip-title">Avoid Overtraining</div><div class="tip-text">Signs: elevated resting HR, poor sleep, strength drops, constant soreness, mood changes. Solution: deload week every 8–12 weeks — 50% volume at normal intensity. Growth happens during recovery.</div></div>
-    <div class="tip-card"><div class="tip-icon">🏆</div><div class="tip-title">The 80/20 Rule</div><div class="tip-text">80% of results come from: consistent training, adequate protein, good sleep, progressive overload. Supplements, timing tricks, and advanced techniques make up the other 20%. Master basics first.</div></div>
-    <div class="tip-card"><div class="tip-icon">🌡️</div><div class="tip-title">Creatine — Just Do It</div><div class="tip-text">Most researched supplement in sports science. 5g/day consistently (no loading needed). Increases strength output by 5–15%. Safe for kidneys in healthy people. Takes 3–4 weeks to fully saturate.</div></div>
-    <div class="tip-card"><div class="tip-icon">🔄</div><div class="tip-title">Periodisation</div><div class="tip-text">Rotate training phases every 8–12 weeks: Hypertrophy (8–12 reps), Strength (3–6 reps), Endurance (15–20 reps). This prevents adaptation and breaks plateaus systematically.</div></div>
-    <div class="tip-card"><div class="tip-icon">🫀</div><div class="tip-title">Stress Kills Gains</div><div class="tip-text">Cortisol is catabolic — it breaks down muscle. Chronic stress, under-eating, or overtraining all spike cortisol. Manage stress actively: cold exposure, breathing drills, adequate rest days.</div></div>
-    <div class="tip-card"><div class="tip-icon">🎯</div><div class="tip-title">Form Before Weight</div><div class="tip-text">Injuries set you back 4–12 weeks minimum. Ego lifting is the biggest progress killer in any gym. Record your sets. Watch them back. Fix form flaws before adding load.</div></div>
-  </div>
-</div>
-</div>
-
-<!-- ══════ TAB 5: HYDRATION ══════ -->
-<div id="tab-hydration" class="section">
-<div class="container">
-  <div class="card">
-    <div class="card-title">Daily Hydration Tracker</div>
-    <p style="font-size:12px;color:var(--ghost);margin-bottom:16px;">Each cup = 250 ml. Tap to fill. Gym-goers need 35–45 ml per kg of bodyweight. Add 500–1000 ml on training days.</p>
-    <div class="form-grid" style="margin-bottom:16px;">
-      <div class="field"><label>Your Body Weight (kg)</label><input type="number" id="h-weight" placeholder="75" oninput="updateWaterTarget()"></div>
-      <div class="field">
-        <label>Today's Status</label>
-        <select id="h-training" onchange="updateWaterTarget()">
-          <option value="0">Rest day</option>
-          <option value="500">Training day (moderate)</option>
-          <option value="1000">Training day (intense)</option>
-        </select>
-      </div>
-    </div>
-    <div class="result-box" style="display:inline-block;margin-bottom:20px;">
-      <div class="result-value" id="water-target" style="color:var(--blue);">—</div>
-      <div class="result-label">Target (ml)</div>
-    </div>
-    <div style="font-size:11px;text-transform:uppercase;letter-spacing:1px;color:var(--ghost);margin-bottom:8px;">Track Your Cups (250 ml each)</div>
-    <div class="water-grid" id="water-cups"></div>
-    <div class="water-status" id="water-status">0 / 0 cups — 0 ml</div>
-    <div style="margin-top:16px;">
-      <button class="btn" onclick="resetWater()" style="background:var(--iron);color:var(--silver);font-size:13px;padding:8px 20px;margin-top:0;">Reset Day</button>
-    </div>
-  </div>
-  <div class="card">
-    <div class="card-title">Hydration Timing Protocol</div>
-    <div id="hydration-timing"></div>
-  </div>
-  <div class="card">
-    <div class="card-title">Signs of Dehydration</div>
-    <div class="tips-grid">
-      <div class="tip-card"><div class="tip-icon">⚠️</div><div class="tip-title">Early Signs (–1 to –2%)</div><div class="tip-text">Thirst, darker urine, slight fatigue, reduced concentration. Performance drops by 5–8%. Don't wait until you're thirsty — you're already behind.</div></div>
-      <div class="tip-card"><div class="tip-icon">🔴</div><div class="tip-title">Moderate Signs (–3 to –5%)</div><div class="tip-text">Headache, dizziness, muscle cramps, reduced strength. Anaerobic performance drops 10–20%. This is where most gym-goers unknowingly train.</div></div>
-      <div class="tip-card"><div class="tip-icon">💧</div><div class="tip-title">Urine Color Guide</div><div class="tip-text">Pale yellow = well hydrated. Dark yellow = drink now. Brown = urgent. Clear = slightly overhydrated (rare risk). Aim for pale lemonade color throughout the day.</div></div>
-    </div>
-  </div>
-</div>
-</div>
-
-<!-- ══════ AI DIET CHATBOT ══════ -->
-<button id="chat-fab" onclick="toggleChat()" title="AI Diet Coach">🤖</button>
-
-<div id="chat-window">
-  <div id="chat-header">
-    <div>
-      <div id="chat-header-title">AI Diet Coach</div>
-      <div id="chat-header-sub">Powered by Gemini AI · Ask anything</div>
-    </div>
-    <button id="chat-close" onclick="toggleChat()">✕</button>
-  </div>
-  <div id="chat-messages">
-    <div class="chat-msg bot">👋 Hey! I'm your AI Diet Coach. Ask me for a personalised meal plan, macro breakdown, pre/post workout meals, or anything about fitness nutrition. Every plan I generate is unique!</div>
-  </div>
-  <div class="quick-btns" id="quick-btns">
-    <button class="quick-btn" onclick="sendQuick('Give me a high-protein vegetarian meal plan for muscle gain')">🥗 Veg Bulk Plan</button>
-    <button class="quick-btn" onclick="sendQuick('Non-veg fat loss meal plan for 1800 calories')">🍗 Non-Veg Cut</button>
-    <button class="quick-btn" onclick="sendQuick('Best pre and post workout meals for muscle building')">⚡ Workout Meals</button>
-    <button class="quick-btn" onclick="sendQuick('Give me a unique Indian diet plan for gym goers')">🇮🇳 Indian Diet</button>
-  </div>
-  <div id="chat-input-row">
-    <input id="chat-input" type="text" placeholder="Ask about diet, macros, meal plans…" onkeydown="if(event.key==='Enter') sendChat()">
-    <button id="chat-send" onclick="sendChat()">SEND</button>
-  </div>
-</div>
-
-<script>
-// ── STATE ──
-let calculated = false;
-let userData = {};
-let quickBW = null;
-
-// ── TAB SWITCHING ──
-function showTab(tab, btn) {
-  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
-  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
-  document.getElementById('tab-' + tab).classList.add('active');
-  if (btn) btn.classList.add('active');
-  if (tab === 'nutrition' && nutritionUnlocked()) renderNutrition();
-  if (tab === 'bw-nutrition') updateBodyWeightTargets();
-  if (tab === 'workout') initWorkoutTab();
-  if (tab === 'hydration') renderHydration();
-}
-
-function nutritionUnlocked() {
-  return calculated || (Number.isFinite(quickBW) && quickBW > 0);
-}
-
-function quickBWContextLine() {
-  return `\n\nUser has only provided body weight: ${quickBW}kg (no height/age/body-fat on file). Estimate protein at roughly 1.6–2.2g/kg body weight and use general fitness ranges for carbs/fat/fiber. Mention that calculating full Body Metrics would sharpen the numbers, but still give useful, specific advice now.`;
-}
-
-// ── HIP LABEL ──
-function updateHipLabel() {
-  const gender = document.getElementById('gender').value;
-  document.getElementById('hip-label').textContent = gender === 'female' ? 'Hip Circumference (cm) *required' : 'Hip Circumference (cm)';
-}
-
-// ── CALCULATE ──
-function calculate() {
-  const w = parseFloat(document.getElementById('weight').value);
-  const bwInput = document.getElementById('bw-target-weight');
-  if (bwInput && Number.isFinite(w)) bwInput.value = w;
-  const hCm = parseFloat(document.getElementById('height').value);
-  const age = parseFloat(document.getElementById('age').value);
-  const gender = document.getElementById('gender').value;
-  const neck = parseFloat(document.getElementById('neck').value);
-  const waist = parseFloat(document.getElementById('waist').value);
-  const hip = parseFloat(document.getElementById('hip').value);
-  const activity = parseFloat(document.getElementById('activity').value);
-  const goal = document.getElementById('goal').value;
-
-  if (!w || !hCm || !age || !neck || !waist) {
-    alert('Please fill in all required fields (weight, height, age, neck, waist).');
-    return;
-  }
-
-  const h = hCm / 100;
-  const bmi = w / (h * h);
-
-  let bf;
-  if (gender === 'male') {
-    bf = 495 / (1.0324 - 0.19077 * Math.log10(waist - neck) + 0.15456 * Math.log10(hCm)) - 450;
-  } else {
-    const hipVal = hip || waist * 1.1;
-    bf = 495 / (1.29579 - 0.35004 * Math.log10(waist + hipVal - neck) + 0.22100 * Math.log10(hCm)) - 450;
-  }
-  bf = Math.max(3, Math.min(60, bf));
-
-  const fatMass = (bf / 100) * w;
-  const lbm = w - fatMass;
-
-  let bmr;
-  if (gender === 'male') bmr = 10 * w + 6.25 * hCm - 5 * age + 5;
-  else bmr = 10 * w + 6.25 * hCm - 5 * age - 161;
-
-  const tdee = bmr * activity;
-  let target = tdee;
-  if (goal === 'cut') target = tdee - 400;
-  else if (goal === 'bulk') target = tdee + 300;
-
-  let ibw;
-  if (gender === 'male') ibw = 50 + 2.3 * ((hCm - 152.4) / 2.54);
-  else ibw = 45.5 + 2.3 * ((hCm - 152.4) / 2.54);
-  ibw = Math.max(40, ibw);
-
-  userData = { w, hCm, age, gender, bmi, bf, fatMass, lbm, bmr, tdee, target, ibw, activity, goal, neck, waist };
-  calculated = true;
-
-  const bmiColor = bmi < 18.5 ? 'yellow' : bmi < 25 ? 'green' : bmi < 30 ? 'yellow' : 'red';
-  const bfColor = getBFColor(bf, gender);
-
-  document.getElementById('r-bmi').textContent = bmi.toFixed(1);
-  document.getElementById('r-bmi').className = 'result-value ' + bmiColor;
-  document.getElementById('r-bf').textContent = bf.toFixed(1) + '%';
-  document.getElementById('r-bf').className = 'result-value ' + bfColor;
-  document.getElementById('r-lbm').textContent = lbm.toFixed(1);
-  document.getElementById('r-fat-kg').textContent = fatMass.toFixed(1);
-  document.getElementById('r-bmr').textContent = Math.round(bmr);
-  document.getElementById('r-tdee').textContent = Math.round(tdee);
-  document.getElementById('r-target').textContent = Math.round(target);
-  document.getElementById('r-ibw').textContent = ibw.toFixed(1);
-
-  const pct = Math.min(100, Math.max(0, (bmi - 10) / 30 * 100));
-  document.getElementById('gauge-marker').style.left = pct + '%';
-
-  document.getElementById('advice-text').textContent = generateAdvice(bmi, bf, gender, goal, lbm);
-  document.getElementById('bf-classification').innerHTML = renderBFClass(bf, gender);
-  document.getElementById('results-panel').classList.add('visible');
-}
-
-function getBFColor(bf, gender) {
-  if (gender === 'male') {
-    if (bf < 6) return 'yellow';
-    if (bf < 14) return 'green';
-    if (bf < 25) return 'yellow';
-    return 'red';
-  } else {
-    if (bf < 14) return 'yellow';
-    if (bf < 25) return 'green';
-    if (bf < 32) return 'yellow';
-    return 'red';
-  }
-}
-
-function generateAdvice(bmi, bf, gender, goal, lbm) {
-  let advice = '';
-  const maleAthletic = gender === 'male' && bf < 15;
-  const femaleAthletic = gender === 'female' && bf < 25;
-  if (goal === 'cut') {
-    advice = `Your target is fat loss. Maintain a 400 kcal deficit. Prioritise protein to preserve ${lbm.toFixed(1)} kg of lean mass — this is your performance engine. `;
-    if (bf > (gender === 'male' ? 25 : 32)) advice += 'Your body fat is in the high range — consistent deficit + progressive training will show rapid changes. ';
-  } else if (goal === 'bulk') {
-    advice = `You're in a muscle-building phase. The 300 kcal surplus is a lean bulk — expect 0.5–1 kg of scale weight per month with good training. Focus on compound lifts and hitting protein daily. `;
-  } else {
-    advice = `Body recomposition phase. Eat at maintenance, train hard, sleep well. This approach works best at your current composition level. `;
-  }
-  if (maleAthletic || femaleAthletic) advice += 'Your body fat % is in the athletic range — great foundation for performance. ';
-  advice += `BMI of ${bmi.toFixed(1)} ${bmi < 25 ? 'is within the healthy range' : bmi < 30 ? 'is slightly elevated — strength training will reshape your body composition' : 'is above the optimal range — prioritise fat loss'}. Track weekly weigh-ins (same day, same time, fasted).`;
-  return advice;
-}
-
-function renderBFClass(bf, gender) {
-  const categories = gender === 'male'
-    ? [['Essential Fat','2–5%',2,5],['Athletic','6–13%',6,13],['Fitness','14–17%',14,17],['Average','18–24%',18,24],['High','25%+',25,100]]
-    : [['Essential Fat','10–13%',10,13],['Athletic','14–20%',14,20],['Fitness','21–24%',21,24],['Average','25–31%',25,31],['High','32%+',32,100]];
-
-  return categories.map(([name, range, lo, hi]) => {
-    const active = bf >= lo && bf < hi;
-    const color = active ? (lo < (gender==='male'?14:20) ? 'var(--green)' : lo < (gender==='male'?18:25) ? 'var(--yellow)' : 'var(--red)') : 'var(--ghost)';
-    return `<div style="display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--iron);">
-      <div style="width:10px;height:10px;border-radius:50%;background:${color};flex-shrink:0;${active?'box-shadow:0 0 8px '+color:''}"></div>
-      <div style="flex:1;font-size:13px;color:${active?'var(--white)':'var(--ghost)'};">${name}</div>
-      <div style="font-size:12px;color:${color};font-family:'JetBrains Mono',monospace;">${range}</div>
-      ${active ? '<div style="font-size:10px;background:var(--plasma-dim);color:var(--plasma);padding:2px 8px;border:1px solid rgba(255,77,0,0.3);">YOU</div>' : ''}
-    </div>`;
-  }).join('');
-}
-
-// ── NUTRITION ──
-function renderNutrition() {
-  if (!nutritionUnlocked()) return;
-  document.getElementById('nutrition-locked').style.display = 'none';
-  document.getElementById('nutrition-data').style.display = 'block';
-
-  const approx = !calculated;
-  let lbm, target, goal, w;
-  if (calculated) {
-    ({ lbm, target, goal, w } = userData);
-  } else {
-    // Weight-only fallback: no height/age/body-fat on file, so approximate
-    // everything from body weight alone using general fitness ranges.
-    w = quickBW;
-    goal = 'maintain';
-    lbm = w; // stand-in for lean mass since body fat % is unknown
-    target = Math.round(w * 30); // rough maintenance-calorie estimate (~30 kcal/kg)
-  }
-
-  document.getElementById('nutrition-approx-note').style.display = approx ? 'block' : 'none';
-
-  const protein = approx ? Math.round(w * 1.9) : Math.round(lbm * (goal === 'cut' ? 2.4 : goal === 'bulk' ? 2.0 : 2.2));
-  const fat = Math.round((target * 0.25) / 9);
-  const carbs = Math.round((target - protein * 4 - fat * 9) / 4);
-  const fiber = Math.round(w * 0.35);
-
-  document.getElementById('n-protein').textContent = protein;
-  document.getElementById('n-carbs').textContent = carbs;
-  document.getElementById('n-fat').textContent = fat;
-  document.getElementById('n-fiber').textContent = fiber;
-
-  // Macro bars
-  const total = protein * 4 + carbs * 4 + fat * 9;
-  document.getElementById('macro-bars').innerHTML = [
-    ['Protein', protein + 'g', (protein * 4 / total * 100).toFixed(0), 'var(--plasma)'],
-    ['Carbs', carbs + 'g', (carbs * 4 / total * 100).toFixed(0), 'var(--blue)'],
-    ['Fat', fat + 'g', (fat * 9 / total * 100).toFixed(0), 'var(--yellow)'],
-    ['Fiber', fiber + 'g', Math.min(100, fiber / 40 * 100).toFixed(0), 'var(--green)'],
-  ].map(([name, amount, pct, color]) => `
-    <div class="macro-row">
-      <div class="macro-name">${name}</div>
-      <div class="macro-bar-wrap"><div class="macro-bar" style="width:${pct}%;background:${color};"></div></div>
-      <div class="macro-amount">${amount}</div>
-    </div>
-  `).join('');
-
-  // Protein distribution
-  const breakfastProtein = Math.round(protein * 0.25);
-  const lunchProtein = Math.round(protein * 0.30);
-  const preWorkoutProtein = Math.round(protein * 0.15);
-  const postWorkoutProtein = Math.round(protein * 0.10);
-  const dinnerProtein = Math.round(protein * 0.20);
-  document.getElementById('protein-distribution').innerHTML = [
-    ['Breakfast', breakfastProtein],
-    ['Lunch', lunchProtein],
-    ['Pre Workout', preWorkoutProtein],
-    ['Post Workout', postWorkoutProtein],
-    ['Dinner', dinnerProtein],
-  ].map(([name, g]) => `
-    <div class="macro-row">
-      <div class="macro-name">${name}</div>
-      <div class="macro-bar-wrap"><div class="macro-bar" style="width:${Math.round(g/protein*100)}%;background:var(--plasma);"></div></div>
-      <div class="macro-amount">${g}g</div>
-    </div>
-  `).join('');
-
-  renderProteinByGoal(lbm, goal, approx);
-  renderMealLog();
-
-  // Meal timing
-  document.getElementById('meal-timing').innerHTML = [
-    ['06:30–07:00', 'Breakfast', 'Biggest meal of the day. High protein + complex carbs.'],
-    ['10:00–10:30', 'Mid-Morning Snack', 'Fruit + nuts or Greek yogurt.'],
-    ['13:00–14:00', 'Lunch', 'Balanced meal — protein + carbs + veg.'],
-    ['16:00–16:30', 'Pre-Workout', 'Fast carbs + protein 45–60 min before training.'],
-    ['19:00–19:30', 'Post-Workout', 'Protein shake or meal within 1 hr of training.'],
-    ['21:00–21:30', 'Dinner', 'Lighter carbs, high protein, healthy fats.'],
-  ].map(([time, meal, tip]) => `
-    <div style="display:grid;grid-template-columns:130px 160px 1fr;gap:12px;padding:12px 0;border-bottom:1px solid var(--iron);font-size:12px;align-items:center;">
-      <div style="font-family:'JetBrains Mono',monospace;color:var(--plasma);font-size:11px;">${time}</div>
-      <div style="color:var(--white);">${meal}</div>
-      <div style="color:var(--ghost);">${tip}</div>
-    </div>
-  `).join('');
-
-  // Protein sources
-  const sources = goal === 'cut'
-    ? [['Chicken Breast (100g)', '31g protein', '165 kcal'], ['Egg Whites (100g)', '11g protein', '52 kcal'], ['Tuna (100g)', '30g protein', '132 kcal'], ['Greek Yogurt (200g)', '20g protein', '130 kcal'], ['Tofu (100g)', '8g protein', '76 kcal']]
-    : [['Chicken Thigh (100g)', '26g protein', '209 kcal'], ['Whole Eggs (2)', '12g protein', '143 kcal'], ['Salmon (100g)', '25g protein', '208 kcal'], ['Paneer (100g)', '18g protein', '265 kcal'], ['Lentils (100g cooked)', '9g protein', '116 kcal']];
-
-  document.getElementById('protein-sources').innerHTML = sources.map(([food, protein, cal]) => `
-    <div class="macro-row">
-      <div style="flex:1;font-size:13px;color:var(--silver);">${food}</div>
-      <div style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--plasma);margin-right:12px;">${protein}</div>
-      <div style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--ghost);">${cal}</div>
-    </div>
-  `).join('');
-
-  // Supplements
-  document.getElementById('supplement-stack').innerHTML = [
-    ['Creatine Monohydrate', '5g/day', 'Any time — consistency matters. No loading needed.'],
-    ['Whey Protein', '25–30g/serving', 'Post-workout or to hit daily protein target.'],
-    ['Omega-3 (Fish Oil)', '2–3g EPA+DHA', 'With meals. Reduces inflammation, supports joints.'],
-    ['Vitamin D3', '2000–4000 IU/day', 'With fat-containing meal. Most Indians are deficient.'],
-    ['Magnesium Glycinate', '300–400mg/day', 'Before bed. Improves sleep quality and recovery.'],
-  ].map(([name, dose, note]) => `
-    <div class="macro-row">
-      <div style="flex:1;"><div style="font-size:13px;color:var(--white);">${name}</div><div style="font-size:11px;color:var(--ghost);margin-top:2px;">${note}</div></div>
-      <div style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--plasma);text-align:right;min-width:100px;">${dose}</div>
-    </div>
-  `).join('');
-}
-
-function updateBodyWeightTargets() {
-  const input = document.getElementById('bw-target-weight');
-  if (!input) return;
-
-  // Auto-prefill from the Body Metrics weight field the first time this tab is opened.
-  if (!input.value) {
-    const metricsWeight = document.getElementById('weight')?.value;
-    if (metricsWeight) input.value = metricsWeight;
-  }
-
-  const w = parseFloat(input.value);
-  if (!Number.isFinite(w) || w <= 0) {
-    quickBW = null;
-    ['bw-protein', 'bw-carbs', 'bw-carb-loading', 'bw-fiber'].forEach(id => {
-      const el = document.getElementById(id);
-      if (el) el.textContent = '—';
-    });
-    const dist = document.getElementById('bw-protein-distribution');
-    if (dist) dist.innerHTML = '';
-    return;
-  }
-
-  quickBW = w;
-
-  const proteinLow = w * 1.6, proteinHigh = w * 2.2;
-  const proteinMid = Math.round((proteinLow + proteinHigh) / 2);
-
-  document.getElementById('bw-protein').textContent = `${Math.round(proteinLow)}–${Math.round(proteinHigh)} g`;
-  document.getElementById('bw-carbs').textContent = `${Math.round(w * 3)}–${Math.round(w * 5)} g`;
-  document.getElementById('bw-carb-loading').textContent = `${Math.round(w * 5)}–${Math.round(w * 7)} g`;
-  document.getElementById('bw-fiber').textContent = `${Math.round(w * 0.35)} g`;
-
-  // Split the mid-point protein target across meals for the standalone tab.
-  const dist = document.getElementById('bw-protein-distribution');
-  if (dist) {
-    const splits = [
-      ['Breakfast', 0.25], ['Lunch', 0.30], ['Pre Workout', 0.15],
-      ['Post Workout', 0.10], ['Dinner', 0.20],
-    ];
-    dist.innerHTML = splits.map(([name, pct]) => {
-      const g = Math.round(proteinMid * pct);
-      return `
-        <div class="macro-row">
-          <div class="macro-name">${name}</div>
-          <div class="macro-bar-wrap"><div class="macro-bar" style="width:${Math.round(pct * 100)}%;background:var(--plasma);"></div></div>
-          <div class="macro-amount">${g}g</div>
-        </div>`;
-    }).join('');
-  }
-
-  // Keep the Nutrition tab in sync if it's already open.
-  if (document.getElementById('tab-nutrition')?.classList.contains('active')) renderNutrition();
-}
-
-// ── AI FOOD PHOTO ANALYZER ──
-let foodAnalysisDataUrl = '';
-
-function previewFoodAnalysis(event) {
-  const file = event.target.files && event.target.files[0];
-  const preview = document.getElementById('food-analysis-preview');
-  if (!file) {
-    foodAnalysisDataUrl = '';
-    preview.style.display = 'none';
-    return;
-  }
-  if (!file.type.startsWith('image/')) {
-    alert('Please choose a food image.');
-    event.target.value = '';
-    return;
-  }
-  if (file.size > 9 * 1024 * 1024) {
-    alert('Please choose an image smaller than 9 MB.');
-    event.target.value = '';
-    return;
-  }
-  const reader = new FileReader();
-  reader.onload = () => {
-    foodAnalysisDataUrl = reader.result;
-    preview.style.display = 'block';
-    preview.innerHTML = `
-      <div style="font-size:10px;color:var(--ghost);letter-spacing:1px;text-transform:uppercase;margin-bottom:8px;">Selected Photo</div>
-      <img src="${foodAnalysisDataUrl}" alt="Food preview" style="max-width:280px;max-height:220px;border-radius:8px;border:1px solid var(--iron);display:block;object-fit:contain;">
-      <div style="font-size:10px;color:var(--ghost);margin-top:7px;">${escapeHtml(file.type || 'image/jpeg')} · ${(file.size / 1024 / 1024).toFixed(2)} MB</div>`;
-  };
-  reader.readAsDataURL(file);
-}
-
-async function analyzeFoodPhoto() {
-  if (!foodAnalysisDataUrl) {
-    alert('Choose a food photo first.');
-    return;
-  }
-
-  const btn = document.getElementById('food-analyze-btn');
-  const result = document.getElementById('food-analysis-result');
-  const fileInput = document.getElementById('food-analysis-file');
-  const selectedFile = fileInput?.files?.[0];
-  const expectedFood = document.getElementById('expected-food').value.trim();
-  const mimeType = selectedFile?.type || (foodAnalysisDataUrl.match(/^data:(image\/[^;]+);base64,/i)?.[1] || 'image/jpeg');
-
-  btn.disabled = true;
-  btn.textContent = 'ANALYZING…';
-  result.style.display = 'block';
-  result.innerHTML = '<div style="color:var(--ghost);font-size:12px;">🤖 Analyzing your food photo with Gemini AI…</div>';
-
-  try {
-    const response = await fetch('/api/analyze-food', {
-      method: 'POST',
-      headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify({
-        image: foodAnalysisDataUrl,
-        expectedFood,
-        mimeType
-      })
-    });
-
-    const rawText = await response.text();
-    let data = {};
-    try { data = rawText ? JSON.parse(rawText) : {}; } catch (_) {}
-    if (!response.ok) {
-      throw new Error(data.error || `Food analysis failed (HTTP ${response.status}).`);
+# IronBody - Flask app with Gemini AI for local + cloud deployment
+# Put app.py and index.html in the same folder.
+#
+# First-time setup:
+#   python -m pip install flask flask-cors python-dotenv requests
+#
+# Gemini API key is read from GEMINI_API_KEY.
+# Default model: gemini-3.6-flash
+
+import os
+import time
+import threading
+import webbrowser
+import requests
+import re
+from dotenv import load_dotenv
+
+from flask import Flask, request, jsonify, send_from_directory
+from flask_cors import CORS
+
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+
+# Load .env from the same folder as app.py.
+# override=True also fixes cases where Windows has an empty/stale
+# GEMINI_API_KEY environment variable that would otherwise hide .env.
+ENV_FILE = os.path.join(BASE_DIR, ".env")
+load_dotenv(ENV_FILE, override=True)
+
+app = Flask(__name__, static_folder=BASE_DIR, static_url_path="")
+CORS(app)
+
+PORT = int(os.environ.get("PORT", "3001"))
+
+# Accept the project's normal name plus common Gemini/Google aliases.
+# The actual key is never printed or returned to the browser.
+GEMINI_API_KEY = (
+    os.environ.get("GEMINI_API_KEY")
+    or os.environ.get("GOOGLE_API_KEY")
+    or os.environ.get("GOOGLE_GEMINI_API_KEY")
+    or ""
+).strip().strip('"').strip("'")
+
+MODEL = os.environ.get("GEMINI_MODEL", "").strip() or "gemini-3.6-flash"
+
+# Automatically migrate the old model name if it is still present in
+# Render/environment variables.
+if MODEL in {"gemini-2.5-flash", "gemini-2.5-flash-001"}:
+    MODEL = "gemini-3.6-flash"
+
+GEMINI_URL = f"https://generativelanguage.googleapis.com/v1beta/models/{MODEL}:generateContent"
+
+print(f"[CONFIG] .env found: {os.path.isfile(ENV_FILE)}")
+print(f"[CONFIG] Gemini API key loaded: {bool(GEMINI_API_KEY)}")
+print(f"[CONFIG] Gemini model: {MODEL}")
+
+WINDOW_SECONDS = 60
+MAX_REQUESTS_PER_WINDOW = 30
+_hits = {}
+
+def rate_limited(ip):
+    now = time.time()
+    entry = _hits.get(ip, {"count": 0, "start": now})
+    if now - entry["start"] > WINDOW_SECONDS:
+        entry = {"count": 0, "start": now}
+    entry["count"] += 1
+    _hits[ip] = entry
+    return entry["count"] > MAX_REQUESTS_PER_WINDOW
+
+@app.route("/")
+def home():
+    return send_from_directory(BASE_DIR, "index.html")
+
+@app.route("/health", methods=["GET"])
+def health():
+    return jsonify({"status": "ok", "ai": "gemini", "model": MODEL, "configured": bool(GEMINI_API_KEY)})
+
+@app.route("/api/analyze-food", methods=["POST"])
+def analyze_food():
+    """Analyze a food photo with Gemma 3 vision."""
+    if rate_limited(request.remote_addr):
+        return jsonify({"error": "Too many requests. Please slow down."}), 429
+
+    body = request.get_json(silent=True) or {}
+    image = body.get("image", "")
+    image_mime_type = str(body.get("mimeType", "image/jpeg")).strip().lower()
+    if not image_mime_type.startswith("image/"):
+        image_mime_type = "image/jpeg"
+    expected_food = str(body.get("expectedFood", "")).strip()
+
+    if not image or not isinstance(image, str):
+        return jsonify({"error": "Please provide a food image."}), 400
+    if image.startswith("data:"):
+        image = image.split(",", 1)[1]
+    if len(image) > 12_000_000:
+        return jsonify({"error": "Image is too large. Please use an image under about 9 MB."}), 413
+
+    expected_instruction = (
+        f' The user thinks the food is "{expected_food}". Check whether the photo matches that food.'
+        if expected_food else
+        " Identify the most likely food or dish visible in the image."
+    )
+    prompt = f"""You are IronBody's food-photo recognition model. Analyze ONLY the provided food image.
+{expected_instruction}
+Also estimate the nutrition for a typical single serving of the identified dish.
+Return ONLY valid JSON with these keys:
+food_name: short name of the most likely food/dish
+confidence: integer from 0 to 100 representing your visual recognition confidence
+is_food: true or false
+match: true or false or null (null when no expected food was supplied)
+reason: one short sentence explaining the visual evidence
+serving_size: short description of the estimated serving shown, e.g. "1 plate (~250g)"
+calories: estimated integer kcal for the serving shown
+protein_g: estimated integer grams of protein for the serving shown
+carbs_g: estimated integer grams of carbohydrate for the serving shown
+fat_g: estimated integer grams of fat for the serving shown
+fiber_g: estimated integer grams of fiber for the serving shown
+nutrition_confidence: integer from 0 to 100 for how confident you are in the nutrition estimate specifically (this is usually lower than visual recognition confidence, since portion size is hard to judge from a photo)
+Do not claim that any confidence score is scientific accuracy. If the image is unclear, say so and lower confidence. If is_food is false, still return zeroes for the nutrition fields."""
+
+    if not GEMINI_API_KEY:
+        return jsonify({"error": "Gemini API key is missing. Put GEMINI_API_KEY=YOUR_KEY in the .env file beside app.py, then restart Flask."}), 503
+
+    payload = {
+        "systemInstruction": {
+            "parts": [{"text": "You are IronBody's food-photo recognition model. Return only valid JSON."}]
+        },
+        "contents": [{
+            "role": "user",
+            "parts": [
+                {"text": prompt},
+                {"inline_data": {"mime_type": image_mime_type, "data": image}}
+            ]
+        }],
+        "generationConfig": {
+            "temperature": 0.1,
+            "maxOutputTokens": 600,
+            "responseMimeType": "application/json"
+        }
     }
 
-    const confidence = Math.max(0, Math.min(100, Number(data.confidence) || 0));
-    const matchText = data.match === true ? 'MATCH' : data.match === false ? 'NOT A CLEAR MATCH' : 'NO LABEL CHECK';
-    const matchClass = data.match === true ? 'var(--green)' : data.match === false ? 'var(--yellow)' : 'var(--ghost)';
-    const nutrition = data.nutrition || {};
-    const nutritionConfidence = Math.max(0, Math.min(100, Number(nutrition.confidence) || 0));
+    try:
+        upstream = requests.post(
+            GEMINI_URL,
+            headers={"x-goog-api-key": GEMINI_API_KEY, "Content-Type": "application/json"},
+            json=payload,
+            timeout=180
+        )
+    except requests.exceptions.Timeout:
+        return jsonify({"error": "Food analysis took too long to respond."}), 504
+    except requests.RequestException as e:
+        return jsonify({"error": f"Gemini connection error: {e}"}), 502
 
-    const nutritionRows = [
-      ['🔥', 'Calories', `${nutrition.calories ?? 0} kcal`],
-      ['🥩', 'Protein', `${nutrition.protein_g ?? 0} g`],
-      ['🍚', 'Carbs', `${nutrition.carbs_g ?? 0} g`],
-      ['🥑', 'Fat', `${nutrition.fat_g ?? 0} g`],
-      ['🌾', 'Fiber', `${nutrition.fiber_g ?? 0} g`],
-    ].map(([icon, label, value]) => `
-      <div class="bw-target-box" style="padding:12px;">
-        <div class="bw-icon" style="font-size:18px;">${icon}</div>
-        <div class="bw-label" style="font-size:10px;">${label}</div>
-        <div class="bw-value" style="font-size:17px;">${value}</div>
-      </div>
-    `).join('');
+    try:
+        data = upstream.json()
+    except ValueError:
+        return jsonify({"error": "Gemini returned an invalid response."}), 502
+    if not upstream.ok:
+        err = data.get("error", {})
+        message = err.get("message", "Gemini returned an error.") if isinstance(err, dict) else str(err)
+        return jsonify({"error": message}), upstream.status_code
 
-    result.innerHTML = `
-      <div style="border:1px solid var(--iron);padding:18px;border-radius:8px;background:var(--steel);">
-        <div style="display:flex;justify-content:space-between;gap:16px;align-items:flex-start;flex-wrap:wrap;">
-          <div>
-            <div style="font-size:10px;color:var(--ghost);letter-spacing:1px;text-transform:uppercase;">Detected Food</div>
-            <div style="font-size:22px;color:var(--white);font-family:'Bebas Neue',sans-serif;letter-spacing:1px;margin-top:4px;">${escapeHtml(data.food_name)}</div>
-            <div style="font-size:11px;color:var(--ghost);margin-top:2px;">${escapeHtml(data.serving_size || '')}</div>
-          </div>
-          <div style="text-align:right;">
-            <div style="font-size:10px;color:var(--ghost);letter-spacing:1px;text-transform:uppercase;">Recognition Confidence</div>
-            <div style="font-size:28px;color:var(--plasma);font-family:'JetBrains Mono',monospace;margin-top:4px;">${confidence}%</div>
-          </div>
-        </div>
-        <div style="height:8px;background:var(--iron);border-radius:4px;margin:14px 0 12px;overflow:hidden;">
-          <div style="height:100%;width:${confidence}%;background:var(--plasma);border-radius:4px;"></div>
-        </div>
-        <div style="font-size:12px;color:var(--silver);margin-bottom:8px;">${escapeHtml(data.reason)}</div>
-        <div style="font-size:10px;color:${matchClass};font-family:'JetBrains Mono',monospace;">${matchText}</div>
+    try:
+        text = data["candidates"][0]["content"]["parts"][0]["text"]
+    except (KeyError, IndexError, TypeError):
+        return jsonify({"error": "Gemini returned an empty food analysis."}), 502
+    try:
+        import json
+        cleaned = text.strip()
+        if cleaned.startswith("```"):
+            cleaned = re.sub(r"^```(?:json)?\\s*", "", cleaned, flags=re.I)
+            cleaned = re.sub(r"\\s*```$", "", cleaned)
+        result = json.loads(cleaned)
+    except Exception:
+        return jsonify({"error": "The food model returned an unreadable result."}), 502
 
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-top:18px;margin-bottom:8px;">
-          <div style="font-size:10px;color:var(--ghost);letter-spacing:1px;text-transform:uppercase;">Estimated Nutrition (this serving)</div>
-          <div style="font-size:10px;color:var(--ghost);">Nutrition confidence: <span style="color:var(--plasma);font-family:'JetBrains Mono',monospace;">${nutritionConfidence}%</span></div>
-        </div>
-        <div class="bw-target-grid">${nutritionRows}</div>
+    def to_int(value, lo=None, hi=None, default=0):
+        try:
+            n = int(round(float(value)))
+        except (TypeError, ValueError):
+            n = default
+        if lo is not None:
+            n = max(lo, n)
+        if hi is not None:
+            n = min(hi, n)
+        return n
 
-        <div style="font-size:10px;color:var(--ghost);margin-top:12px;">${escapeHtml(data.note)}</div>
-      </div>`;
-  } catch (error) {
-    result.innerHTML = `<div style="color:#ff7a7a;font-size:12px;">⚠️ ${escapeHtml(error.message)}</div>`;
-  } finally {
-    btn.disabled = false;
-    btn.textContent = 'ANALYZE';
-  }
-}
+    confidence = to_int(result.get("confidence", 0), lo=0, hi=100)
+    nutrition_confidence = to_int(result.get("nutrition_confidence", max(0, confidence - 15)), lo=0, hi=100)
 
-function escapeHtml(value) {
-  return String(value ?? '').replace(/[&<>'"]/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[ch]));
-}
-
-// ── PROTEIN TARGET BY GOAL ──
-const PROTEIN_MULTIPLIERS = { cut: 2.4, maintain: 2.2, bulk: 2.0 };
-function renderProteinByGoal(lbm, goal, approx) {
-  if (!nutritionUnlocked()) return;
-  if (lbm === undefined) ({ lbm, goal } = userData); // backward-compatible fallback
-  const note = document.getElementById('goal-protein-approx-note');
-  if (note) note.style.display = approx ? 'block' : 'none';
-  const labels = { cut: '🔥 Cut', maintain: '⚖️ Maintain', bulk: '💪 Bulk' };
-  document.getElementById('goal-protein-grid').innerHTML = Object.keys(PROTEIN_MULTIPLIERS).map(g => {
-    const mult = PROTEIN_MULTIPLIERS[g];
-    const value = Math.round(lbm * mult);
-    const active = g === goal;
-    return `
-      <div class="goal-protein-box ${active ? 'active' : ''}">
-        ${active ? '<div class="gp-tag">YOUR GOAL</div>' : ''}
-        <div class="gp-label">${labels[g]}</div>
-        <div class="gp-value">${value}g</div>
-        <div class="gp-mult">${mult}g per kg ${approx ? 'body weight' : 'lean mass'}</div>
-      </div>
-    `;
-  }).join('');
-}
-
-// ── MEAL PHOTO LOG (stored locally on this device) ──
-let mealLog = [];
-let pendingPhotoDataUrl = null;
-
-function loadMealLog() {
-  try {
-    const raw = localStorage.getItem('ironbody_meal_log');
-    mealLog = raw ? JSON.parse(raw) : [];
-  } catch (e) { mealLog = []; }
-}
-
-function saveMealLog() {
-  try { localStorage.setItem('ironbody_meal_log', JSON.stringify(mealLog)); } catch (e) {}
-}
-
-function handlePhotoSelect(event) {
-  const file = event.target.files[0];
-  if (!file) return;
-  const reader = new FileReader();
-  reader.onload = () => {
-    pendingPhotoDataUrl = reader.result;
-    const label = document.getElementById('photo-upload-label');
-    label.textContent = '✅ ' + file.name;
-    label.classList.add('has-file');
-  };
-  reader.readAsDataURL(file);
-}
-
-function addMealPhoto() {
-  if (!pendingPhotoDataUrl) {
-    alert('Choose a photo first.');
-    return;
-  }
-  const labelInput = document.getElementById('meal-photo-label');
-  const label = labelInput.value.trim() || 'Meal';
-  mealLog.unshift({
-    id: Date.now(),
-    img: pendingPhotoDataUrl,
-    label,
-    time: new Date().toLocaleString('en-IN', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })
-  });
-  saveMealLog();
-  pendingPhotoDataUrl = null;
-  labelInput.value = '';
-  const uploadLabel = document.getElementById('photo-upload-label');
-  uploadLabel.textContent = '📷 Choose Photo';
-  uploadLabel.classList.remove('has-file');
-  document.getElementById('meal-photo-file').value = '';
-  renderMealLog();
-}
-
-function deleteMealPhoto(id) {
-  mealLog = mealLog.filter(m => m.id !== id);
-  saveMealLog();
-  renderMealLog();
-}
-
-function renderMealLog() {
-  const grid = document.getElementById('meal-log-grid');
-  if (!grid) return;
-  if (!mealLog.length) {
-    grid.innerHTML = '<div class="meal-log-empty">No meals logged yet — add your first photo above.</div>';
-    return;
-  }
-  grid.innerHTML = mealLog.map(m => `
-    <div class="meal-log-item">
-      <div class="meal-log-del" onclick="deleteMealPhoto(${m.id})">✕</div>
-      <img src="${m.img}" alt="${m.label}">
-      <div class="meal-log-caption">
-        <div class="meal-log-label">${m.label}</div>
-        <div class="meal-log-time">${m.time}</div>
-      </div>
-    </div>
-  `).join('');
-}
-
-
-// ── SHARED: CALL DEPLOYED AI API ──
-async function callAIAPI(systemPrompt, messages, maxTokens, temperature) {
-  // Calls the Flask backend on the same deployed site.
-  const response = await fetch('/api/chat', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      systemPrompt,
-      messages,
-      maxTokens: maxTokens || 1000,
-      temperature: temperature !== undefined ? temperature : 1
+    return jsonify({
+        "food_name": str(result.get("food_name", "Unknown food")),
+        "confidence": confidence,
+        "is_food": bool(result.get("is_food", True)),
+        "match": result.get("match"),
+        "reason": str(result.get("reason", "Visual evidence was limited.")),
+        "serving_size": str(result.get("serving_size", "1 serving (estimated)")),
+        "nutrition": {
+            "calories": to_int(result.get("calories", 0), lo=0),
+            "protein_g": to_int(result.get("protein_g", 0), lo=0),
+            "carbs_g": to_int(result.get("carbs_g", 0), lo=0),
+            "fat_g": to_int(result.get("fat_g", 0), lo=0),
+            "fiber_g": to_int(result.get("fiber_g", 0), lo=0),
+            "confidence": nutrition_confidence,
+        },
+        "note": "Recognition and nutrition values are the model's visual estimates, not a validated real-world accuracy percentage — actual serving size and ingredients can shift these numbers."
     })
-  });
-  const data = await response.json();
-  if (!response.ok) {
-    throw new Error(data?.error?.message || data?.error || `API error (${response.status})`);
-  }
-  if (data.content && data.content[0] && data.content[0].text) {
-    return data.content[0].text;
-  }
-  throw new Error('Empty response');
-}
 
-function parseJsonFromAI(text) {
-  let clean = text.trim().replace(/^```json\s*/i, '').replace(/^```\s*/i, '').replace(/```\s*$/i, '');
-  return JSON.parse(clean);
-}
 
-// ── AI DIET COACH (Nutrition Tab, embedded chat) ──
-let nuChatHistory = [];
-let nuChatLoading = false;
+@app.route("/api/chat", methods=["POST"])
+def chat():
+    if rate_limited(request.remote_addr):
+        return jsonify({"error": "Too many requests. Please slow down."}), 429
 
-function appendNuMessage(role, text, isTyping = false) {
-  const msgs = document.getElementById('nu-chat-messages');
-  const el = document.createElement('div');
-  el.className = `nu-msg ${role}${isTyping ? ' typing' : ''}`;
-  el.textContent = text;
-  msgs.appendChild(el);
-  msgs.scrollTop = msgs.scrollHeight;
-  return el;
-}
+    body = request.get_json(silent=True) or {}
+    system_prompt = body.get("systemPrompt")
+    messages = body.get("messages")
+    max_tokens = body.get("maxTokens") or 1000
+    temperature = body.get("temperature", 0.7)
 
-function nuSystemPrompt() {
-  let prompt = `You are IronCoach, an elite fitness nutrition coach embedded in the IronBody gym performance app. You specialise in diet plans, macros, meal timing, recipes, and sports nutrition.
+    if not isinstance(messages, list) or not messages:
+        return jsonify({"error": "messages array is required"}), 400
 
-Your personality: direct, no-nonsense, like a serious gym coach. Use short paragraphs. Be specific with quantities (grams, calories). Tailor advice to Indian users when relevant (mention dal, paneer, chapati, roti, rice etc. alongside global foods).
+    if not GEMINI_API_KEY:
+        return jsonify({"error": "Gemini API key is missing. Put GEMINI_API_KEY=YOUR_KEY in the .env file beside app.py, then restart Flask."}), 503
 
-IMPORTANT PLAN SCOPE: When the user asks for a meal plan, diet plan, food plan, or today's diet, generate ONLY TODAY'S plan. Never generate a weekly plan, 7-day plan, Monday-Sunday schedule, or Day 1/Day 2 format unless the user explicitly asks for a weekly plan. A daily plan should cover only today's meals (breakfast, snacks if needed, lunch, pre-workout, post-workout, dinner, and optional bedtime snack). Keep it practical and concise.
+    gemini_contents = []
+    for message in messages:
+        role = message.get("role", "user")
+        if role == "assistant":
+            role = "model"
+        elif role not in ["user", "model"]:
+            role = "user"
 
-Protein targets differ by goal: Cut ≈ 2.4g per kg lean mass (protects muscle in a deficit), Maintain ≈ 2.2g per kg lean mass, Bulk ≈ 2.0g per kg lean mass (already in a surplus, so slightly less per kg is needed). Use these multipliers when asked about protein targets.
+        content = message.get("content", "")
+        if isinstance(content, list):
+            parts = []
+            for item in content:
+                if isinstance(item, dict) and item.get("type") == "text":
+                    parts.append({"text": str(item.get("text", ""))})
+                else:
+                    parts.append({"text": str(item)})
+        else:
+            parts = [{"text": str(content)}]
 
-CRITICAL: Every meal plan or recipe you generate must be UNIQUE and DIFFERENT from previous ones. Vary the foods, timing, structure, and approach each time. Never repeat the exact same plan.
+        gemini_contents.append({"role": role, "parts": parts})
 
-Format meal plans clearly with time slots and macro estimates. Keep responses concise but complete — no fluff, no markdown symbols.`;
-  if (calculated && userData.w) {
-    prompt += `\n\nUser's current stats: Weight ${userData.w}kg, Height ${userData.hCm}cm, Age ${userData.age}, Gender ${userData.gender}, Body Fat ${userData.bf?.toFixed(1)}%, Lean Mass ${userData.lbm?.toFixed(1)}kg, TDEE ${Math.round(userData.tdee)} kcal, Target ${Math.round(userData.target)} kcal, Goal: ${userData.goal}. Use these numbers to personalise all advice.`;
-  } else if (Number.isFinite(quickBW) && quickBW > 0) {
-    prompt += quickBWContextLine();
-  }
-  return prompt;
-}
+    payload = {
+        "contents": gemini_contents,
+        "generationConfig": {
+            "maxOutputTokens": int(max_tokens)
+        }
+    }
 
-function sendQuickNutrition(text) {
-  document.getElementById('nu-chat-input').value = text;
-  sendNutritionChat();
-}
+    if system_prompt:
+        payload["systemInstruction"] = {
+            "parts": [{"text": str(system_prompt)}]
+        }
 
-async function sendNutritionChat() {
-  if (nuChatLoading) return;
-  const input = document.getElementById('nu-chat-input');
-  const text = input.value.trim();
-  if (!text) return;
+    try:
+        upstream = requests.post(
+            GEMINI_URL,
+            headers={"x-goog-api-key": GEMINI_API_KEY, "Content-Type": "application/json"},
+            json=payload,
+            timeout=180
+        )
+    except requests.exceptions.Timeout:
+        return jsonify({"error": "Gemini took too long to respond."}), 504
+    except requests.RequestException as e:
+        return jsonify({"error": f"Gemini connection error: {e}"}), 502
 
-  input.value = '';
-  appendNuMessage('user', text);
-  nuChatHistory.push({ role: 'user', content: text });
+    try:
+        data = upstream.json()
+    except ValueError:
+        return jsonify({"error": "Gemini returned an invalid response."}), 502
 
-  const typingEl = appendNuMessage('bot', '...', true);
-  nuChatLoading = true;
-  document.getElementById('nu-chat-send').disabled = true;
+    if not upstream.ok:
+        err = data.get("error", {})
+        message = err.get("message", "Gemini returned an error.") if isinstance(err, dict) else str(err)
+        return jsonify({"error": message}), upstream.status_code
 
-  try {
-    const reply = await callAIAPI(nuSystemPrompt(), nuChatHistory, 1200, 1);
-    nuChatHistory.push({ role: 'assistant', content: reply });
-    typingEl.remove();
-    appendNuMessage('bot', reply);
-  } catch (err) {
-    typingEl.remove();
-    appendNuMessage('bot', '⚠️ ' + (err?.message || 'AI connection failed. Check that the Flask server is running and GEMINI_API_KEY is configured.'));
-    nuChatHistory.pop();
-  }
+    try:
+        text = data["candidates"][0]["content"]["parts"][0]["text"]
+    except (KeyError, IndexError, TypeError):
+        return jsonify({"error": "Gemini returned an empty response."}), 502
 
-  nuChatLoading = false;
-  document.getElementById('nu-chat-send').disabled = false;
-  input.focus();
-}
+    return jsonify({"content": [{"type": "text", "text": text}]})
 
-// ── WORKOUT (AI Coach, goal-aware, fresh every week) ──
-let woChatHistory = [];
-let woChatLoading = false;
-let lastWorkoutGoal = null;
+def open_browser():
+    time.sleep(1.2)
+    webbrowser.open(f"http://127.0.0.1:{PORT}/")
 
-function getISOWeek(date) {
-  const d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
-  const dayNum = d.getUTCDay() || 7;
-  d.setUTCDate(d.getUTCDate() + 4 - dayNum);
-  const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
-  return Math.ceil((((d - yearStart) / 86400000) + 1) / 7);
-}
-
-function woCacheKey(goal) {
-  const now = new Date();
-  return `ironbody_workout_${now.getFullYear()}_w${getISOWeek(now)}_${goal}`;
-}
-
-function initWorkoutTab() {
-  const now = new Date();
-  const week = getISOWeek(now);
-  document.getElementById('wo-week-tag').textContent = `Training Week ${week} · ${now.getFullYear()}`;
-  const goal = userData.goal || lastWorkoutGoal;
-  document.querySelectorAll('.wo-goal-badge').forEach(b => {
-    if (b.dataset.goal) b.classList.toggle('current', b.dataset.goal === goal);
-  });
-}
-
-function appendWoMessage(role, text, isTyping = false) {
-  const msgs = document.getElementById('wo-chat-messages');
-  const el = document.createElement('div');
-  el.className = `wo-msg ${role}${isTyping ? ' typing' : ''}`;
-  el.textContent = text;
-  msgs.appendChild(el);
-  msgs.scrollTop = msgs.scrollHeight;
-  return el;
-}
-
-function woSystemPrompt() {
-  let prompt = `You are IronCoach, an elite strength & conditioning coach inside the IronBody gym app. You design weekly training splits.
-
-Tailor training STYLE to the user's goal:
-- CUT (fat loss): moderate-to-higher rep ranges (10–15), shorter rest (45–75s), supersets/circuits where sensible, add 1–2 short conditioning/cardio finishers, slightly higher overall volume to maximise calorie burn while preserving muscle.
-- BULK (muscle gain): lower-to-moderate rep ranges (4–10), longer rest (2–3 min), heavy compound lift emphasis (squat, bench, deadlift, row, press), minimal cardio, prioritise progressive overload on big lifts.
-- MAINTAIN (medium/recomposition): balanced hybrid, moderate reps (8–12), standard rest (60–120s), mix of strength and hypertrophy work, light conditioning optional.
-
-CRITICAL: Every week's plan must be DIFFERENT from previous weeks — rotate the split style (e.g. Push/Pull/Legs one week, Upper/Lower the next, Full Body another) and vary specific exercise selection, even for the same goal. Never give the exact same plan twice.
-
-Format: list each training day with a short header (Day 1 — Push, etc.), then exercises as "Exercise — sets×reps — short note", plus a one-line rest day note where applicable. Be specific with sets/reps/rest. No long preamble — get straight into the plan. Keep the response focused and scannable, no markdown symbols.`;
-  if (calculated && userData.w) {
-    prompt += `\n\nUser stats: Weight ${userData.w}kg, Height ${userData.hCm}cm, Age ${userData.age}, Gender ${userData.gender}, Lean Mass ${userData.lbm?.toFixed(1)}kg, Goal: ${userData.goal}.`;
-  }
-  return prompt;
-}
-
-async function requestWeekWorkout(goal, forceRegenerate) {
-  if (woChatLoading) return;
-  const targetGoal = goal || lastWorkoutGoal || userData.goal || 'maintain';
-  lastWorkoutGoal = targetGoal;
-  document.querySelectorAll('.wo-goal-badge').forEach(b => {
-    if (b.dataset.goal) b.classList.toggle('current', b.dataset.goal === targetGoal);
-  });
-
-  const goalLabel = targetGoal === 'cut' ? 'CUT (fat loss)' : targetGoal === 'bulk' ? 'BULK (muscle gain)' : 'MAINTAIN (recomposition)';
-  const now = new Date();
-  const week = getISOWeek(now);
-  const cacheKey = woCacheKey(targetGoal);
-
-  appendWoMessage('user', `Give me this week's ${goalLabel} workout plan.`);
-
-  if (!forceRegenerate) {
-    try {
-      const cached = localStorage.getItem(cacheKey);
-      if (cached) {
-        appendWoMessage('bot', cached + `\n\n(Already generated for Training Week ${week} — tap "Regenerate This Week" for a fresh variation.)`);
-        woChatHistory.push({ role: 'user', content: `Give me this week's ${goalLabel} workout plan.` });
-        woChatHistory.push({ role: 'assistant', content: cached });
-        return;
-      }
-    } catch (e) {}
-  }
-
-  const typingEl = appendWoMessage('bot', '...', true);
-  woChatLoading = true;
-  document.getElementById('wo-chat-send').disabled = true;
-
-  const userMsg = `Give me this week's (Training Week ${week}, ${now.getFullYear()}) ${goalLabel} workout plan. Make it different from a generic plan — vary the split style. Random seed: ${Math.random().toString(36).slice(2)}.`;
-  woChatHistory.push({ role: 'user', content: userMsg });
-
-  try {
-    const reply = await callAIAPI(woSystemPrompt(), woChatHistory, 1500);
-    woChatHistory.push({ role: 'assistant', content: reply });
-    typingEl.remove();
-    appendWoMessage('bot', reply);
-    try { localStorage.setItem(cacheKey, reply); } catch (e) {}
-  } catch (err) {
-    typingEl.remove();
-    appendWoMessage('bot', '⚠️ Connection error generating your workout. Please try again.');
-    woChatHistory.pop();
-  }
-
-  woChatLoading = false;
-  document.getElementById('wo-chat-send').disabled = false;
-}
-
-async function sendWorkoutChat() {
-  if (woChatLoading) return;
-  const input = document.getElementById('wo-chat-input');
-  const text = input.value.trim();
-  if (!text) return;
-  input.value = '';
-  appendWoMessage('user', text);
-  woChatHistory.push({ role: 'user', content: text });
-
-  const typingEl = appendWoMessage('bot', '...', true);
-  woChatLoading = true;
-  document.getElementById('wo-chat-send').disabled = true;
-
-  try {
-    const reply = await callAIAPI(woSystemPrompt(), woChatHistory, 1200);
-    woChatHistory.push({ role: 'assistant', content: reply });
-    typingEl.remove();
-    appendWoMessage('bot', reply);
-  } catch (err) {
-    typingEl.remove();
-    appendWoMessage('bot', '⚠️ ' + (err?.message || 'AI connection failed. Check that the Flask server is running and GEMINI_API_KEY is configured.'));
-  }
-
-  woChatLoading = false;
-  document.getElementById('wo-chat-send').disabled = false;
-  input.focus();
-}
-
-// ── HYDRATION ──
-let waterFilled = 0;
-let waterTotal = 8;
-
-function renderHydration() {
-  const timing = [
-    ['On waking', '500 ml', 'Rehydrate from 6–8 hr overnight fast. Cold water preferred.'],
-    ['30 min before training', '500 ml', 'Arrive at the gym already hydrated.'],
-    ['During training', '150–250 ml / 15 min', "Sip continuously — don't wait for thirst."],
-    ['Post-workout (within 1hr)', '500–750 ml', 'Replace sweat loss. Add electrolytes if heavy sweating.'],
-    ['With each meal', '250–300 ml', 'Aids digestion and satiety.'],
-    ['Before bed', '200 ml', "Small amount — don't disrupt sleep with bathroom trips."],
-  ];
-  document.getElementById('hydration-timing').innerHTML = timing.map(([time, amount, tip]) => `
-    <div style="display:grid;grid-template-columns:180px 120px 1fr;gap:12px;padding:12px 0;border-bottom:1px solid var(--iron);font-size:12px;align-items:center;">
-      <div style="color:var(--silver);">${time}</div>
-      <div style="font-family:'JetBrains Mono',monospace;color:var(--blue);">${amount}</div>
-      <div style="color:var(--ghost);">${tip}</div>
-    </div>
-  `).join('');
-  renderWaterCups();
-}
-
-function updateWaterTarget() {
-  const w = parseFloat(document.getElementById('h-weight').value) || 0;
-  const extra = parseInt(document.getElementById('h-training').value) || 0;
-  if (!w) { document.getElementById('water-target').textContent = '—'; return; }
-  const target = Math.round(w * 40 + extra);
-  document.getElementById('water-target').textContent = target;
-  waterTotal = Math.ceil(target / 250);
-  renderWaterCups();
-}
-
-function renderWaterCups() {
-  const container = document.getElementById('water-cups');
-  container.innerHTML = '';
-  for (let i = 0; i < waterTotal; i++) {
-    const cup = document.createElement('div');
-    cup.className = 'water-cup' + (i < waterFilled ? ' filled' : '');
-    cup.textContent = '🥤';
-    cup.onclick = () => toggleCup(i);
-    container.appendChild(cup);
-  }
-  updateWaterStatus();
-}
-
-function toggleCup(i) {
-  waterFilled = (i < waterFilled) ? i : i + 1;
-  renderWaterCups();
-}
-
-function updateWaterStatus() {
-  const ml = waterFilled * 250;
-  const target = waterTotal * 250;
-  const pct = waterTotal ? Math.round(waterFilled / waterTotal * 100) : 0;
-  document.getElementById('water-status').textContent = `${waterFilled} / ${waterTotal} cups — ${ml} ml (${pct}% of target)`;
-}
-
-function resetWater() {
-  waterFilled = 0;
-  renderWaterCups();
-}
-
-// ══════════════════════════════════════════
-// ── AI DIET CHATBOT ──
-// ══════════════════════════════════════════
-let chatOpen = false;
-let chatHistory = [];
-let chatLoading = false;
-
-function toggleChat() {
-  chatOpen = !chatOpen;
-  const win = document.getElementById('chat-window');
-  win.classList.toggle('open', chatOpen);
-  document.getElementById('chat-fab').textContent = chatOpen ? '✕' : '🤖';
-  if (chatOpen) document.getElementById('chat-input').focus();
-}
-
-function sendQuick(text) {
-  document.getElementById('chat-input').value = text;
-  sendChat();
-}
-
-async function sendChat() {
-  if (chatLoading) return;
-  const input = document.getElementById('chat-input');
-  const text = input.value.trim();
-  if (!text) return;
-
-  input.value = '';
-  appendMessage('user', text);
-
-  // Build context from user data if available
-  let systemPrompt = `You are an elite fitness nutrition coach called IronCoach, embedded in the IronBody gym performance app. You specialise in diet plans, macros, meal timing, and sports nutrition. 
-
-Your personality: direct, no-nonsense, like a serious gym coach. Use short paragraphs. Be specific with quantities (grams, calories). Tailor advice to Indian users when relevant (mention dal, paneer, chapati, roti, rice etc. alongside global foods).
-
-IMPORTANT PLAN SCOPE: When the user asks for a meal plan, diet plan, food plan, or today's diet, generate ONLY TODAY'S plan. Never generate a weekly plan, 7-day plan, Monday-Sunday schedule, or Day 1/Day 2 format unless the user explicitly asks for a weekly plan. A daily plan should cover only today's meals (breakfast, snacks if needed, lunch, pre-workout, post-workout, dinner, and optional bedtime snack). Keep it practical and concise.
-
-Protein targets differ by goal: Cut ≈ 2.4g per kg lean mass (protects muscle in a deficit), Maintain ≈ 2.2g per kg lean mass, Bulk ≈ 2.0g per kg lean mass (already in a surplus, so slightly less per kg is needed). Use these multipliers when asked about protein targets.
-
-CRITICAL: Every meal plan you generate must be UNIQUE and DIFFERENT from previous ones. Vary the foods, timing, structure, and approach each time. Never repeat the exact same plan.
-
-Format meal plans clearly with time slots and macro estimates. Keep responses concise but complete — no fluff.`;
-
-  if (calculated && userData.w) {
-    systemPrompt += `\n\nUser's current stats: Weight ${userData.w}kg, Height ${userData.hCm}cm, Age ${userData.age}, Gender ${userData.gender}, Body Fat ${userData.bf?.toFixed(1)}%, Lean Mass ${userData.lbm?.toFixed(1)}kg, TDEE ${Math.round(userData.tdee)} kcal, Target ${Math.round(userData.target)} kcal, Goal: ${userData.goal}. Use these numbers to personalise all advice.`;
-  } else if (Number.isFinite(quickBW) && quickBW > 0) {
-    systemPrompt += quickBWContextLine();
-  }
-
-  chatHistory.push({ role: 'user', content: text });
-
-  const typingEl = appendMessage('bot', '...', true);
-  chatLoading = true;
-  document.getElementById('chat-send').disabled = true;
-
-  try {
-    const reply = await callAIAPI(systemPrompt, chatHistory, 1000);
-    chatHistory.push({ role: 'assistant', content: reply });
-    typingEl.remove();
-    appendMessage('bot', reply);
-  } catch (err) {
-    typingEl.remove();
-    appendMessage('bot', '⚠️ ' + (err?.message || 'AI connection failed. Check that the Flask server is running and GEMINI_API_KEY is configured.'));
-  }
-
-  chatLoading = false;
-  document.getElementById('chat-send').disabled = false;
-  document.getElementById('chat-input').focus();
-}
-
-function appendMessage(role, text, isTyping = false) {
-  const msgs = document.getElementById('chat-messages');
-  const el = document.createElement('div');
-  el.className = `chat-msg ${role}${isTyping ? ' typing' : ''}`;
-  el.textContent = text;
-  msgs.appendChild(el);
-  msgs.scrollTop = msgs.scrollHeight;
-  return el;
-}
-
-async function checkAIBackend() {
-  try {
-    const r = await fetch('/health', { cache: 'no-store' });
-    const d = await r.json();
-    console.log('IronBody AI health:', d);
-    return d;
-  } catch (e) {
-    console.warn('IronBody backend unavailable:', e);
-    return null;
-  }
-}
-
-// ── INIT ──
-loadMealLog();
-renderHydration();
-</script>
-</body>
-</html>
+if __name__ == "__main__":
+    print()
+    print("==============================================")
+    print("        IRONBODY - GYM PERFORMANCE HUB")
+    print("==============================================")
+    print(f" Website : http://127.0.0.1:{PORT}/")
+    print(f" Health  : http://127.0.0.1:{PORT}/health")
+    print(" AI      : Gemini")
+    print(f" Model   : {MODEL}")
+    print(" Keep this window open while using IronBody.")
+    print("==============================================")
+    print()
+    threading.Thread(target=open_browser, daemon=True).start()
+    app.run(host="0.0.0.0", port=PORT, debug=False, use_reloader=False)
