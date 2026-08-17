@@ -370,14 +370,22 @@ def analyze_food():
     ).strip().lower()
     expected_food = str(body.get("expectedFood", "")).strip()
 
+    # Prefer the MIME type encoded in the data URL when available.
+    # This prevents PNG/WebP/JPEG bytes from being mislabeled as another format.
+    if isinstance(image, str) and image.startswith("data:"):
+        header, _, payload_data = image.partition(",")
+        match = re.match(r"data:(image/[a-zA-Z0-9.+-]+);base64$", header, re.I)
+        if match:
+            image_mime_type = match.group(1).lower()
+        image = payload_data
+
     if not image or not isinstance(image, str):
         return jsonify({"error": "Please provide a food image."}), 400
 
-    if not image_mime_type.startswith("image/"):
+    if image_mime_type not in {
+        "image/jpeg", "image/jpg", "image/png", "image/webp", "image/heic", "image/heif"
+    }:
         image_mime_type = "image/jpeg"
-
-    if image.startswith("data:"):
-        image = image.split(",", 1)[1]
 
     if len(image) > 12_000_000:
         return (
@@ -474,11 +482,17 @@ Do not claim confidence is scientific accuracy.
         },
     }
 
+    print(
+        f"[FOOD] request: mime={image_mime_type}, base64_chars={len(image)}, "
+        f"expected={expected_food or '(none)'}"
+    )
+
     data, status, error, used_model = call_gemini_with_fallback(
         payload, timeout=180
     )
 
     if data is None:
+        print(f"[FOOD] Gemini error: status={status}, error={error}")
         return jsonify({"error": error}), status
 
     text = get_response_text(data)
@@ -707,11 +721,17 @@ def chat():
             ]
         }
 
+    print(
+        f"[FOOD] request: mime={image_mime_type}, base64_chars={len(image)}, "
+        f"expected={expected_food or '(none)'}"
+    )
+
     data, status, error, used_model = call_gemini_with_fallback(
         payload, timeout=180
     )
 
     if data is None:
+        print(f"[FOOD] Gemini error: status={status}, error={error}")
         return jsonify({"error": error}), status
 
     text = get_response_text(data)
