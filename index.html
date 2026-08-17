@@ -255,111 +255,31 @@
   .goal-protein-box .gp-mult { font-size: 10px; color: var(--ghost); margin-top: 6px; }
   .goal-protein-box .gp-tag { position: absolute; top: -8px; right: 8px; font-size: 9px; background: var(--plasma); color: #fff; padding: 2px 7px; letter-spacing: 1px; }
 
-
-
-  /* ── PROTEIN COMPLETION COACH ── */
-  .protein-completion-grid {
-    display:grid;
-    grid-template-columns:repeat(3,minmax(0,1fr));
-    gap:12px;
-    margin-top:16px;
+  /* ── MEAL PHOTO LOG ── */
+  .photo-log-input-row { display: flex; gap: 10px; flex-wrap: wrap; align-items: flex-end; margin-bottom: 16px; }
+  .photo-log-input-row .field { flex: 1; min-width: 160px; margin-bottom: 0; }
+  #meal-photo-file { display: none; }
+  .photo-upload-btn {
+    background: var(--steel); border: 1px dashed var(--border); color: var(--silver);
+    font-size: 12px; padding: 10px 16px; border-radius: 2px; cursor: pointer;
+    text-align: center; transition: all 0.2s; white-space: nowrap;
   }
-  .protein-completion-box {
-    background:var(--steel);
-    border:1px solid var(--border);
-    border-radius:2px;
-    padding:18px;
-    text-align:center;
+  .photo-upload-btn:hover { border-color: var(--plasma); color: var(--plasma); }
+  .photo-upload-btn.has-file { border-style: solid; border-color: var(--green); color: var(--green); }
+  .meal-log-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 14px; margin-top: 8px; }
+  .meal-log-item { background: var(--steel); border: 1px solid var(--border); border-radius: 2px; overflow: hidden; position: relative; }
+  .meal-log-item img { width: 100%; height: 110px; object-fit: cover; display: block; }
+  .meal-log-caption { padding: 8px 10px; }
+  .meal-log-label { font-size: 11px; color: var(--white); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .meal-log-time { font-size: 9px; color: var(--ghost); margin-top: 2px; }
+  .meal-log-del {
+    position: absolute; top: 6px; right: 6px; width: 22px; height: 22px;
+    background: rgba(10,10,10,0.75); border: 1px solid var(--border); color: var(--silver);
+    border-radius: 50%; cursor: pointer; font-size: 12px; display: flex;
+    align-items: center; justify-content: center; line-height: 1;
   }
-  .protein-completion-box.highlight {
-    border-color:var(--plasma);
-    background:var(--plasma-dim);
-  }
-  .pc-label {
-    font-size:10px;
-    letter-spacing:1.5px;
-    text-transform:uppercase;
-    color:var(--ghost);
-    margin-bottom:9px;
-  }
-  .pc-value {
-    font-family:'JetBrains Mono',monospace;
-    font-size:28px;
-    font-weight:600;
-    color:var(--white);
-  }
-  .pc-value.plasma { color:var(--plasma); }
-  .pc-unit {
-    font-size:10px;
-    color:var(--ghost);
-    margin-top:5px;
-  }
-  .pc-input {
-    width:100%;
-    max-width:150px;
-    background:var(--iron);
-    border:1px solid var(--border);
-    color:var(--white);
-    font-family:'JetBrains Mono',monospace;
-    font-size:24px;
-    text-align:center;
-    padding:8px;
-    outline:none;
-    border-radius:2px;
-  }
-  .pc-input:focus { border-color:var(--plasma); }
-  .pc-progress-wrap { margin-top:18px; }
-  .pc-progress {
-    width:100%;
-    height:9px;
-    background:var(--iron);
-    border-radius:5px;
-    overflow:hidden;
-  }
-  .pc-progress-fill {
-    height:100%;
-    width:0%;
-    background:linear-gradient(90deg,var(--plasma),var(--green));
-    transition:width .3s ease;
-  }
-  .pc-progress-labels {
-    display:flex;
-    justify-content:space-between;
-    margin-top:7px;
-    font-size:10px;
-    color:var(--ghost);
-    font-family:'JetBrains Mono',monospace;
-  }
-  .pc-action-row {
-    display:flex;
-    gap:10px;
-    align-items:center;
-    flex-wrap:wrap;
-    margin-top:18px;
-  }
-  .pc-suggest-btn { margin-top:0; }
-  .pc-reset-btn {
-    background:var(--iron);
-    border:1px solid var(--border);
-    color:var(--silver);
-    padding:12px 18px;
-    cursor:pointer;
-    font-family:'Bebas Neue',sans-serif;
-    letter-spacing:1px;
-  }
-  .pc-reset-btn:hover { border-color:var(--plasma); color:var(--plasma); }
-  .pc-suggestion {
-    margin-top:16px;
-    padding:16px;
-    background:var(--steel);
-    border:1px solid var(--border);
-    border-left:3px solid var(--plasma);
-    color:var(--silver);
-    font-size:13px;
-    line-height:1.75;
-    white-space:pre-wrap;
-    overflow-wrap:anywhere;
-  }
+  .meal-log-del:hover { color: var(--red); border-color: var(--red); }
+  .meal-log-empty { font-size: 12px; color: var(--ghost); padding: 12px 0; }
 
   /* ── WORKOUT AI CHAT (embedded) ── */
   .wo-goal-badges { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px; }
@@ -398,32 +318,10 @@
   #wo-chat-send:disabled { background: var(--iron); color: var(--ghost); cursor: not-allowed; }
 
   #nu-chat-messages {
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-    min-height: 150px;
-    max-height: 720px;
-    overflow-y: auto;
-    padding: 4px 6px 12px;
-    box-sizing: border-box;
-    scroll-behavior: smooth;
-    scrollbar-width: thin;
-    scrollbar-color: var(--iron) transparent;
+    display: flex; flex-direction: column; gap: 10px;
+    max-height: 420px; overflow-y: auto; padding: 4px 4px 8px;
   }
-  #nu-chat-messages::-webkit-scrollbar { width: 5px; }
-  #nu-chat-messages::-webkit-scrollbar-thumb { background: var(--iron); border-radius: 3px; }
-  .nu-msg {
-    width: fit-content;
-    max-width: 100%;
-    box-sizing: border-box;
-    font-size: 13px;
-    line-height: 1.75;
-    padding: 14px 16px;
-    border-radius: 3px;
-    white-space: pre-wrap;
-    overflow-wrap: anywhere;
-    word-break: normal;
-  }
+  .nu-msg { max-width: 90%; font-size: 13px; line-height: 1.7; padding: 12px 16px; border-radius: 3px; white-space: pre-wrap; }
   .nu-msg.bot { background: var(--steel); color: var(--silver); align-self: flex-start; border-left: 3px solid var(--plasma); }
   .nu-msg.user { background: var(--plasma-dim); color: var(--white); align-self: flex-end; border: 1px solid rgba(255,77,0,0.25); }
   .nu-msg.typing { color: var(--ghost); font-style: italic; }
@@ -456,7 +354,6 @@
     .nav-btn { padding: 8px 12px; font-size: 11px; }
     #chat-window { width: calc(100vw - 32px); right: 16px; bottom: 90px; }
     #chat-fab { bottom: 20px; right: 20px; }
-    .protein-completion-grid { grid-template-columns:1fr; }
   }
 </style>
 </head>
@@ -622,62 +519,26 @@
       <div id="protein-distribution"></div>
     </div>
 
-
-    <div class="card">
-      <div class="card-title">Protein Completion Coach</div>
-      <p style="font-size:12px;color:var(--ghost);margin-bottom:14px;">
-        Enter how much protein you have already eaten today. IronBody calculates the remaining protein, then sends it to the AI Diet Coach to build the leftover meal plan.
-      </p>
-
-      <div class="protein-completion-grid">
-        <div class="protein-completion-box">
-          <div class="pc-label">TODAY'S TARGET</div>
-          <div class="pc-value plasma" id="pc-target">—</div>
-          <div class="pc-unit">grams protein</div>
-        </div>
-
-        <div class="protein-completion-box">
-          <div class="pc-label">ALREADY EATEN</div>
-          <input id="pc-eaten" class="pc-input" type="number" min="0" step="1"
-                 placeholder="0" oninput="updateProteinCompletion()">
-          <div class="pc-unit">grams protein</div>
-        </div>
-
-        <div class="protein-completion-box highlight">
-          <div class="pc-label">PROTEIN REMAINING</div>
-          <div class="pc-value" id="pc-remaining">—</div>
-          <div class="pc-unit">grams to complete</div>
-        </div>
-      </div>
-
-      <div class="pc-progress-wrap">
-        <div class="pc-progress">
-          <div class="pc-progress-fill" id="pc-progress-fill"></div>
-        </div>
-        <div class="pc-progress-labels">
-          <span>0g</span>
-          <span id="pc-progress-text">0% complete</span>
-          <span id="pc-progress-target">—</span>
-        </div>
-      </div>
-
-      <div class="pc-action-row">
-        <button class="btn pc-suggest-btn" id="pc-suggest-btn" onclick="openProteinPlanInDietCoach()">
-          🍽 SEND REMAINING PROTEIN TO AI DIET COACH
-        </button>
-        <button class="pc-reset-btn" onclick="resetProteinCompletion()">RESET</button>
-      </div>
-
-      <div id="pc-suggestion" class="pc-suggestion" style="display:none;"></div>
-    </div>
-
     <div class="card">
       <div class="card-title">Protein Target By Goal</div>
       <p style="font-size:12px;color:var(--ghost);margin-bottom:4px;">Protein needs change with your goal — higher per kg on a cut to protect lean mass, slightly lower on a bulk since total calories are already abundant.</p>
       <p id="goal-protein-approx-note" style="font-size:11px;color:var(--yellow);margin-bottom:4px;display:none;">Using total body weight as a stand-in for lean mass since body fat % is unknown — calculate full Body Metrics for a precise number.</p>
       <div class="goal-protein-grid" id="goal-protein-grid"></div>
     </div>
-<div class="card">
+
+    <div class="card">
+      <div class="card-title">Meal Photo Log</div>
+      <p style="font-size:12px;color:var(--ghost);margin-bottom:14px;">Upload a photo of what you ate to keep a visual track record. Stored on this device only.</p>
+      <div class="photo-log-input-row">
+        <label class="photo-upload-btn" id="photo-upload-label" for="meal-photo-file">📷 Choose Photo</label>
+        <input type="file" id="meal-photo-file" accept="image/*" capture="environment" onchange="handlePhotoSelect(event)">
+        <div class="field"><label>Label (optional)</label><input type="text" id="meal-photo-label" placeholder="e.g. Lunch — chicken & rice"></div>
+        <button class="btn" style="margin-top:0;" onclick="addMealPhoto()">Add To Log</button>
+      </div>
+      <div class="meal-log-grid" id="meal-log-grid"></div>
+    </div>
+
+    <div class="card">
       <div class="card-title">AI Food Photo Analyzer</div>
       <p style="font-size:12px;color:var(--ghost);margin-bottom:14px;">Upload a food photo and the ML vision model will identify the dish, give a recognition-confidence score, and estimate calories, protein, carbs, fat and fiber for the serving shown. If you enter what you think the food is, it will also check the visual match.</p>
       <div class="photo-log-input-row">
@@ -1055,7 +916,7 @@ function renderNutrition() {
   `).join('');
 
   renderProteinByGoal(lbm, goal, approx);
-  updateProteinCompletion();
+  renderMealLog();
 
   // Meal timing
   document.getElementById('meal-timing').innerHTML = [
@@ -1157,7 +1018,6 @@ function updateBodyWeightTargets() {
 
 // ── AI FOOD PHOTO ANALYZER ──
 let foodAnalysisDataUrl = '';
-let foodAnalysisMimeType = 'image/jpeg';
 
 function previewFoodAnalysis(event) {
   const file = event.target.files && event.target.files[0];
@@ -1180,9 +1040,11 @@ function previewFoodAnalysis(event) {
   const reader = new FileReader();
   reader.onload = () => {
     foodAnalysisDataUrl = reader.result;
-    foodAnalysisMimeType = file.type || 'image/jpeg';
     preview.style.display = 'block';
-    preview.innerHTML = `<img src="${foodAnalysisDataUrl}" alt="Food preview" style="max-width:280px;max-height:220px;border-radius:8px;border:1px solid var(--iron);display:block;">`;
+    preview.innerHTML = `
+      <div style="font-size:10px;color:var(--ghost);letter-spacing:1px;text-transform:uppercase;margin-bottom:8px;">Selected Photo</div>
+      <img src="${foodAnalysisDataUrl}" alt="Food preview" style="max-width:280px;max-height:220px;border-radius:8px;border:1px solid var(--iron);display:block;object-fit:contain;">
+      <div style="font-size:10px;color:var(--ghost);margin-top:7px;">${escapeHtml(file.type || 'image/jpeg')} · ${(file.size / 1024 / 1024).toFixed(2)} MB</div>`;
   };
   reader.readAsDataURL(file);
 }
@@ -1195,20 +1057,33 @@ async function analyzeFoodPhoto() {
 
   const btn = document.getElementById('food-analyze-btn');
   const result = document.getElementById('food-analysis-result');
+  const fileInput = document.getElementById('food-analysis-file');
+  const selectedFile = fileInput?.files?.[0];
   const expectedFood = document.getElementById('expected-food').value.trim();
+  const mimeType = selectedFile?.type || (foodAnalysisDataUrl.match(/^data:(image\/[^;]+);base64,/i)?.[1] || 'image/jpeg');
+
   btn.disabled = true;
   btn.textContent = 'ANALYZING…';
   result.style.display = 'block';
-  result.innerHTML = '<div style="color:var(--ghost);font-size:12px;">🤖 Analyzing your food photo with Gemini Vision…</div>';
+  result.innerHTML = '<div style="color:var(--ghost);font-size:12px;">🤖 Analyzing your food photo with Gemini AI…</div>';
 
   try {
     const response = await fetch('/api/analyze-food', {
       method: 'POST',
       headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify({image: foodAnalysisDataUrl, mimeType: foodAnalysisMimeType, expectedFood})
+      body: JSON.stringify({
+        image: foodAnalysisDataUrl,
+        expectedFood,
+        mimeType
+      })
     });
-    const data = await response.json();
-    if (!response.ok) throw new Error(data.error || 'Food analysis failed.');
+
+    const rawText = await response.text();
+    let data = {};
+    try { data = rawText ? JSON.parse(rawText) : {}; } catch (_) {}
+    if (!response.ok) {
+      throw new Error(data.error || `Food analysis failed (HTTP ${response.status}).`);
+    }
 
     const confidence = Math.max(0, Math.min(100, Number(data.confidence) || 0));
     const matchText = data.match === true ? 'MATCH' : data.match === false ? 'NOT A CLEAR MATCH' : 'NO LABEL CHECK';
@@ -1269,114 +1144,6 @@ function escapeHtml(value) {
   return String(value ?? '').replace(/[&<>'"]/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[ch]));
 }
 
-
-// ── PROTEIN COMPLETION COACH ──
-function getProteinTarget() {
-  if (calculated && Number.isFinite(userData.lbm)) {
-    const multiplier = userData.goal === 'cut' ? 2.4 :
-                       userData.goal === 'bulk' ? 2.0 : 2.2;
-    return Math.round(userData.lbm * multiplier);
-  }
-  if (Number.isFinite(quickBW) && quickBW > 0) return Math.round(quickBW * 1.9);
-  return null;
-}
-
-function proteinStorageKey() {
-  return 'ironbody_protein_' + new Date().toISOString().slice(0,10);
-}
-
-function loadProteinCompletion() {
-  const input = document.getElementById('pc-eaten');
-  if (!input) return;
-  try {
-    const saved = localStorage.getItem(proteinStorageKey());
-    if (saved !== null) input.value = saved;
-  } catch (e) {}
-  updateProteinCompletion();
-}
-
-function updateProteinCompletion() {
-  const target = getProteinTarget();
-  const input = document.getElementById('pc-eaten');
-  const targetEl = document.getElementById('pc-target');
-  const remainingEl = document.getElementById('pc-remaining');
-  const fill = document.getElementById('pc-progress-fill');
-  const progressText = document.getElementById('pc-progress-text');
-  const progressTarget = document.getElementById('pc-progress-target');
-
-  if (!target) {
-    targetEl.textContent = '—';
-    remainingEl.textContent = '—';
-    fill.style.width = '0%';
-    progressText.textContent = 'Calculate metrics or enter body weight first';
-    progressTarget.textContent = '—';
-    return;
-  }
-
-  const eaten = Math.max(0, Number(input.value) || 0);
-  const remaining = Math.max(0, target - eaten);
-  const pct = Math.min(100, Math.round((eaten / target) * 100));
-
-  targetEl.textContent = target + ' g';
-  remainingEl.textContent = remaining + ' g';
-  fill.style.width = pct + '%';
-  progressText.textContent = pct + '% complete';
-  progressTarget.textContent = target + 'g target';
-
-  try { localStorage.setItem(proteinStorageKey(), String(eaten)); } catch (e) {}
-}
-
-function resetProteinCompletion() {
-  const input = document.getElementById('pc-eaten');
-  if (input) input.value = '';
-  try { localStorage.removeItem(proteinStorageKey()); } catch (e) {}
-  updateProteinCompletion();
-  const box = document.getElementById('pc-suggestion');
-  if (box) {
-    box.style.display = 'none';
-    box.textContent = '';
-  }
-}
-
-function openProteinPlanInDietCoach() {
-  const target = getProteinTarget();
-  if (!target) {
-    alert('First calculate Body Metrics or enter your body weight in Weight Nutrition.');
-    return;
-  }
-
-  const eaten = Math.max(0, Number(document.getElementById('pc-eaten').value) || 0);
-  const remaining = Math.max(0, target - eaten);
-  const status = document.getElementById('pc-suggestion');
-
-  updateProteinCompletion();
-
-  if (remaining <= 0) {
-    status.style.display = 'block';
-    status.textContent = '✅ Your protein target is already complete for today.';
-    return;
-  }
-
-  status.style.display = 'block';
-  status.textContent = '↗ Remaining protein sent to AI Diet Coach. The coach will ask whether you want a new meal or a repeated meal before generating it.';
-
-  const input = document.getElementById('nu-chat-input');
-  const section = document.getElementById('tab-nutrition');
-  if (section) section.scrollIntoView({ behavior: 'smooth', block: 'start' });
-
-  const prompt =
-    `[PROTEIN_COMPLETION_REQUEST]\n` +
-    `Today's protein target: ${target}g.\n` +
-    `Already eaten today: ${eaten}g.\n` +
-    `Protein remaining: ${remaining}g.\n\n` +
-    `I need a leftover-protein meal plan to cover approximately ${remaining}g protein. ` +
-    `Ask me the required new-meal-or-repeat-meal question first.`;
-
-  input.value = prompt;
-  sendNutritionChat();
-}
-
-
 // ── PROTEIN TARGET BY GOAL ──
 const PROTEIN_MULTIPLIERS = { cut: 2.4, maintain: 2.2, bulk: 2.0 };
 function renderProteinByGoal(lbm, goal, approx) {
@@ -1400,69 +1167,104 @@ function renderProteinByGoal(lbm, goal, approx) {
   }).join('');
 }
 
+// ── MEAL PHOTO LOG (stored locally on this device) ──
+let mealLog = [];
+let pendingPhotoDataUrl = null;
+
+function loadMealLog() {
+  try {
+    const raw = localStorage.getItem('ironbody_meal_log');
+    mealLog = raw ? JSON.parse(raw) : [];
+  } catch (e) { mealLog = []; }
+}
+
+function saveMealLog() {
+  try { localStorage.setItem('ironbody_meal_log', JSON.stringify(mealLog)); } catch (e) {}
+}
+
+function handlePhotoSelect(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = () => {
+    pendingPhotoDataUrl = reader.result;
+    const label = document.getElementById('photo-upload-label');
+    label.textContent = '✅ ' + file.name;
+    label.classList.add('has-file');
+  };
+  reader.readAsDataURL(file);
+}
+
+function addMealPhoto() {
+  if (!pendingPhotoDataUrl) {
+    alert('Choose a photo first.');
+    return;
+  }
+  const labelInput = document.getElementById('meal-photo-label');
+  const label = labelInput.value.trim() || 'Meal';
+  mealLog.unshift({
+    id: Date.now(),
+    img: pendingPhotoDataUrl,
+    label,
+    time: new Date().toLocaleString('en-IN', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })
+  });
+  saveMealLog();
+  pendingPhotoDataUrl = null;
+  labelInput.value = '';
+  const uploadLabel = document.getElementById('photo-upload-label');
+  uploadLabel.textContent = '📷 Choose Photo';
+  uploadLabel.classList.remove('has-file');
+  document.getElementById('meal-photo-file').value = '';
+  renderMealLog();
+}
+
+function deleteMealPhoto(id) {
+  mealLog = mealLog.filter(m => m.id !== id);
+  saveMealLog();
+  renderMealLog();
+}
+
+function renderMealLog() {
+  const grid = document.getElementById('meal-log-grid');
+  if (!grid) return;
+  if (!mealLog.length) {
+    grid.innerHTML = '<div class="meal-log-empty">No meals logged yet — add your first photo above.</div>';
+    return;
+  }
+  grid.innerHTML = mealLog.map(m => `
+    <div class="meal-log-item">
+      <div class="meal-log-del" onclick="deleteMealPhoto(${m.id})">✕</div>
+      <img src="${m.img}" alt="${m.label}">
+      <div class="meal-log-caption">
+        <div class="meal-log-label">${m.label}</div>
+        <div class="meal-log-time">${m.time}</div>
+      </div>
+    </div>
+  `).join('');
+}
 
 
-// ── SHARED: CALL DEPLOYED GEMINI AI API ──
+// ── SHARED: CALL DEPLOYED AI API ──
 async function callAIAPI(systemPrompt, messages, maxTokens, temperature) {
+  // Calls the Flask backend on the same deployed site.
   const response = await fetch('/api/chat', {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'Accept': 'application/json'
-    },
+    headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
-      systemPrompt: systemPrompt,
-      messages: messages,
-      maxTokens: maxTokens || 2000,
-      temperature: temperature !== undefined ? temperature : 0.7
+      systemPrompt,
+      messages,
+      maxTokens: maxTokens || 1000,
+      temperature: temperature !== undefined ? temperature : 1
     })
   });
-
-  // Read as text first so HTML error pages do not cause:
-  // "Unexpected token < ... is not valid JSON"
-  const raw = await response.text();
-
-  let data;
-  try {
-    data = JSON.parse(raw);
-  } catch (error) {
-    console.error('AI API returned non-JSON:', raw);
-
-    if (raw.includes('<!DOCTYPE') || raw.includes('<html')) {
-      throw new Error(
-        'The AI server returned an HTML page instead of JSON. ' +
-        'Check that the Flask /api/chat route is deployed correctly.'
-      );
-    }
-
-    throw new Error(
-      'Server returned invalid JSON: ' + raw.substring(0, 250)
-    );
-  }
-
+  const data = await response.json();
   if (!response.ok) {
-    throw new Error(
-      data?.error?.message ||
-      data?.error ||
-      `API error (${response.status})`
-    );
+    throw new Error(data?.error?.message || data?.error || `API error (${response.status})`);
   }
-
-  // Current Flask/Gemini response format
   if (data.content && data.content[0] && data.content[0].text) {
     return data.content[0].text;
   }
-
-  // Also support a simple Gemini-style text response if the backend returns it.
-  if (typeof data.text === 'string' && data.text.trim()) {
-    return data.text.trim();
-  }
-
-  if (typeof data.response === 'string' && data.response.trim()) {
-    return data.response.trim();
-  }
-
-  throw new Error('Gemini returned an empty response.');
+  throw new Error('Empty response');
 }
 
 function parseJsonFromAI(text) {
@@ -1495,15 +1297,6 @@ Protein targets differ by goal: Cut ≈ 2.4g per kg lean mass (protects muscle i
 
 CRITICAL: Every meal plan or recipe you generate must be UNIQUE and DIFFERENT from previous ones. Vary the foods, timing, structure, and approach each time. Never repeat the exact same plan.
 
-PROTEIN COMPLETION MODE:
-When a user is sent here from the Protein Completion Coach, the message will contain a remaining protein amount and the marker [PROTEIN_COMPLETION_REQUEST].
-On EVERY protein-completion request, ask exactly ONE question BEFORE giving the meal plan:
-"Do you want a completely new meal, or should I repeat a meal you already had?"
-Do not generate the meal plan until the user answers that question.
-If the user chooses NEW, create a fresh meal/meal combination that covers approximately the remaining protein and do not reuse the previous meal.
-If the user chooses REPEAT, reuse a suitable meal from the conversation/history and adjust the quantity if needed to match the remaining protein.
-After the user answers, give ONLY today's leftover-protein meal plan needed to cover the remaining protein. Do not generate a full-day plan unless the user asks for one. Include exact quantities and estimated protein.
-
 Format meal plans clearly with time slots and macro estimates. Keep responses concise but complete — no fluff, no markdown symbols.`;
   if (calculated && userData.w) {
     prompt += `\n\nUser's current stats: Weight ${userData.w}kg, Height ${userData.hCm}cm, Age ${userData.age}, Gender ${userData.gender}, Body Fat ${userData.bf?.toFixed(1)}%, Lean Mass ${userData.lbm?.toFixed(1)}kg, TDEE ${Math.round(userData.tdee)} kcal, Target ${Math.round(userData.target)} kcal, Goal: ${userData.goal}. Use these numbers to personalise all advice.`;
@@ -1533,7 +1326,7 @@ async function sendNutritionChat() {
   document.getElementById('nu-chat-send').disabled = true;
 
   try {
-    const reply = await callAIAPI(nuSystemPrompt(), nuChatHistory, 2400, 0.7);
+    const reply = await callAIAPI(nuSystemPrompt(), nuChatHistory, 1200, 1);
     nuChatHistory.push({ role: 'assistant', content: reply });
     typingEl.remove();
     appendNuMessage('bot', reply);
@@ -1638,7 +1431,7 @@ async function requestWeekWorkout(goal, forceRegenerate) {
   woChatHistory.push({ role: 'user', content: userMsg });
 
   try {
-    const reply = await callAIAPI(woSystemPrompt(), woChatHistory, 2400, 0.7);
+    const reply = await callAIAPI(woSystemPrompt(), woChatHistory, 1500);
     woChatHistory.push({ role: 'assistant', content: reply });
     typingEl.remove();
     appendWoMessage('bot', reply);
@@ -1667,7 +1460,7 @@ async function sendWorkoutChat() {
   document.getElementById('wo-chat-send').disabled = true;
 
   try {
-    const reply = await callAIAPI(woSystemPrompt(), woChatHistory, 1800, 0.7);
+    const reply = await callAIAPI(woSystemPrompt(), woChatHistory, 1200);
     woChatHistory.push({ role: 'assistant', content: reply });
     typingEl.remove();
     appendWoMessage('bot', reply);
@@ -1784,11 +1577,6 @@ Protein targets differ by goal: Cut ≈ 2.4g per kg lean mass (protects muscle i
 
 CRITICAL: Every meal plan you generate must be UNIQUE and DIFFERENT from previous ones. Vary the foods, timing, structure, and approach each time. Never repeat the exact same plan.
 
-PROTEIN COMPLETION MODE:
-If the user message contains [PROTEIN_COMPLETION_REQUEST], ask exactly ONE question first:
-"Do you want a completely new meal, or should I repeat a meal you already had?"
-Wait for the answer. If NEW, make a fresh leftover-protein meal. If REPEAT, reuse a suitable meal from the conversation and adjust quantities. Do not give the meal until the user answers.
-
 Format meal plans clearly with time slots and macro estimates. Keep responses concise but complete — no fluff.`;
 
   if (calculated && userData.w) {
@@ -1804,7 +1592,7 @@ Format meal plans clearly with time slots and macro estimates. Keep responses co
   document.getElementById('chat-send').disabled = true;
 
   try {
-    const reply = await callAIAPI(systemPrompt, chatHistory, 1800, 0.7);
+    const reply = await callAIAPI(systemPrompt, chatHistory, 1000);
     chatHistory.push({ role: 'assistant', content: reply });
     typingEl.remove();
     appendMessage('bot', reply);
@@ -1831,16 +1619,9 @@ function appendMessage(role, text, isTyping = false) {
 async function checkAIBackend() {
   try {
     const r = await fetch('/health', { cache: 'no-store' });
-    const raw = await r.text();
-
-    try {
-      const d = JSON.parse(raw);
-      console.log('IronBody AI health:', d);
-      return d;
-    } catch (e) {
-      console.warn('Health endpoint returned non-JSON:', raw.substring(0, 200));
-      return null;
-    }
+    const d = await r.json();
+    console.log('IronBody AI health:', d);
+    return d;
   } catch (e) {
     console.warn('IronBody backend unavailable:', e);
     return null;
@@ -1848,6 +1629,7 @@ async function checkAIBackend() {
 }
 
 // ── INIT ──
+loadMealLog();
 renderHydration();
 </script>
 </body>
