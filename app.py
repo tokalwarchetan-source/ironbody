@@ -5,53 +5,26 @@
 #   python -m pip install flask flask-cors python-dotenv requests
 #
 # Gemini API key is read from GEMINI_API_KEY.
-# Default model: gemini-3.6-flash
+# Default model: gemini-2.5-flash
 
 import os
 import time
 import threading
 import webbrowser
 import requests
-import re
-from dotenv import load_dotenv
 
 from flask import Flask, request, jsonify, send_from_directory
 from flask_cors import CORS
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
-# Load .env from the same folder as app.py.
-# override=True also fixes cases where Windows has an empty/stale
-# GEMINI_API_KEY environment variable that would otherwise hide .env.
-ENV_FILE = os.path.join(BASE_DIR, ".env")
-load_dotenv(ENV_FILE, override=True)
-
 app = Flask(__name__, static_folder=BASE_DIR, static_url_path="")
 CORS(app)
 
 PORT = int(os.environ.get("PORT", "3001"))
-
-# Accept the project's normal name plus common Gemini/Google aliases.
-# The actual key is never printed or returned to the browser.
-GEMINI_API_KEY = (
-    os.environ.get("GEMINI_API_KEY")
-    or os.environ.get("GOOGLE_API_KEY")
-    or os.environ.get("GOOGLE_GEMINI_API_KEY")
-    or ""
-).strip().strip('"').strip("'")
-
-MODEL = os.environ.get("GEMINI_MODEL", "").strip() or "gemini-3.6-flash"
-
-# Automatically migrate the old model name if it is still present in
-# Render/environment variables.
-if MODEL in {"gemini-2.5-flash", "gemini-2.5-flash-001"}:
-    MODEL = "gemini-3.6-flash"
-
+GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY", "").strip()
+MODEL = os.environ.get("GEMINI_MODEL", "gemini-2.5-flash")
 GEMINI_URL = f"https://generativelanguage.googleapis.com/v1beta/models/{MODEL}:generateContent"
-
-print(f"[CONFIG] .env found: {os.path.isfile(ENV_FILE)}")
-print(f"[CONFIG] Gemini API key loaded: {bool(GEMINI_API_KEY)}")
-print(f"[CONFIG] Gemini model: {MODEL}")
 
 WINDOW_SECONDS = 60
 MAX_REQUESTS_PER_WINDOW = 30
@@ -83,9 +56,10 @@ def analyze_food():
     body = request.get_json(silent=True) or {}
     image = body.get("image", "")
     image_mime_type = str(body.get("mimeType", "image/jpeg")).strip().lower()
+    expected_food = str(body.get("expectedFood", "")).strip()
+
     if not image_mime_type.startswith("image/"):
         image_mime_type = "image/jpeg"
-    expected_food = str(body.get("expectedFood", "")).strip()
 
     if not image or not isinstance(image, str):
         return jsonify({"error": "Please provide a food image."}), 400
@@ -118,7 +92,7 @@ nutrition_confidence: integer from 0 to 100 for how confident you are in the nut
 Do not claim that any confidence score is scientific accuracy. If the image is unclear, say so and lower confidence. If is_food is false, still return zeroes for the nutrition fields."""
 
     if not GEMINI_API_KEY:
-        return jsonify({"error": "Gemini API key is missing. Put GEMINI_API_KEY=YOUR_KEY in the .env file beside app.py, then restart Flask."}), 503
+        return jsonify({"error": "Gemini AI is not configured on the server."}), 503
 
     payload = {
         "systemInstruction": {
@@ -133,7 +107,7 @@ Do not claim that any confidence score is scientific accuracy. If the image is u
         }],
         "generationConfig": {
             "temperature": 0.1,
-            "maxOutputTokens": 600,
+            "maxOutputTokens": 400,
             "responseMimeType": "application/json"
         }
     }
@@ -165,11 +139,7 @@ Do not claim that any confidence score is scientific accuracy. If the image is u
         return jsonify({"error": "Gemini returned an empty food analysis."}), 502
     try:
         import json
-        cleaned = text.strip()
-        if cleaned.startswith("```"):
-            cleaned = re.sub(r"^```(?:json)?\\s*", "", cleaned, flags=re.I)
-            cleaned = re.sub(r"\\s*```$", "", cleaned)
-        result = json.loads(cleaned)
+        result = json.loads(text)
     except Exception:
         return jsonify({"error": "The food model returned an unreadable result."}), 502
 
@@ -221,7 +191,7 @@ def chat():
         return jsonify({"error": "messages array is required"}), 400
 
     if not GEMINI_API_KEY:
-        return jsonify({"error": "Gemini API key is missing. Put GEMINI_API_KEY=YOUR_KEY in the .env file beside app.py, then restart Flask."}), 503
+        return jsonify({"error": "Gemini AI is not configured on the server."}), 503
 
     gemini_contents = []
     for message in messages:
@@ -247,6 +217,7 @@ def chat():
     payload = {
         "contents": gemini_contents,
         "generationConfig": {
+            "temperature": float(temperature),
             "maxOutputTokens": int(max_tokens)
         }
     }
